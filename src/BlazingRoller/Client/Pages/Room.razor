@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using System.Text
 @using System.Text.Json
+@using System.IO
 
 @inject NavigationManager Navigator
 @inject SessionStorageService Storage
@@ -69,21 +70,14 @@
 
     public async Task Roll()
     {
-        ParseInput(diceExpression);
+        var dice = ParseInput(diceExpression);
 
         var seed = new Random().Next();
         var config =
             new DiceThrowConfiguration
             {
                 RandomSeed = seed,
-                Dice = new List<DieThrowConfiguration>
-                    {
-                        new DieThrowConfiguration
-                        {
-                            Id = 0,
-                            Sides = (int)Die.D6
-                        }
-                    }
+                Dice = dice.Select(_ => new DieThrowConfiguration { Id = _.Id, Sides = (int)_.Die }).ToList()
             };
 
         Console.WriteLine($"Random seed passed to Unity: {seed}");
@@ -98,27 +92,24 @@
         await JSRuntime.InvokeVoidAsync("engine.rollDice", json);
     }
 
-    private void ParseInput(string input)
+    private IReadOnlyCollection<DieParser.DieDefinition> ParseInput(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
         {
-            return;
+            return new List<DieParser.DieDefinition>();
         }
 
-        var parsed = DieParser.Parse(diceExpression);
-
-        var sb = new StringBuilder();
-        foreach (var d in parsed.Dice)
+        try
         {
-            sb.AppendLine(d.ToString());
-        }
+            var parsed = DieParser.Parse(diceExpression);
 
-        foreach (var d in parsed.Constants)
+            return parsed.Dice;
+        }
+        catch (InvalidDataException ex)
         {
-            sb.AppendLine(d.ToString());
+            Console.WriteLine($"ERROR: {ex.Message}");
+            return new List<DieParser.DieDefinition>();
         }
-
-        parsedDice = sb.ToString();
     }
 
     public async ValueTask DisposeAsync()

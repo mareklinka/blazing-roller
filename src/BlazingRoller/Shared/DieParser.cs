@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text;
 using System;
 using System.Collections.Generic;
@@ -38,12 +39,12 @@ namespace BlazingRoller.Shared
                 {
                     if (!int.TryParse(dieMatch.Groups["size"].Value, out var faces))
                     {
-                        throw new Exception();
+                        throw new InvalidDataException($"Unable to parse die size: {part}");
                     }
 
                     if (!Enum.IsDefined(typeof(Die), faces))
                     {
-                        throw new Exception();
+                        throw new InvalidDataException($"Invalid die size: {part}");
                     }
 
                     if (!int.TryParse(dieMatch.Groups["multi"].Value, out var multiplicity))
@@ -74,7 +75,7 @@ namespace BlazingRoller.Shared
                 }
                 else
                 {
-                    throw new Exception();
+                    throw new InvalidDataException($"Invalid data encountered: {part}");
                 }
             }
 
