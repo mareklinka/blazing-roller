@@ -15,16 +15,17 @@ public class DiceManagerScript : MonoBehaviour
     {
     }
 
-    public string NewThrow(int seed)
+    public void NewThrow(string serializedConfig)
     {
-        Debug.Log($"Seed used for randomization: {seed}");
+        Debug.Log(serializedConfig);
+        var config = JsonUtility.FromJson<BlazingRoller.Unity.DiceThrowConfiguration>(serializedConfig);
+
+        Debug.Log($"Seed used for randomization: {config.RandomSeed}");
 
         foreach (var die in GameObject.FindGameObjectsWithTag("Dice"))
         {
             var script = die.GetComponent<InitScript>();
-            script.RandomStart(seed);
+            script.RandomStart(config.RandomSeed);
         }
-
-        return seed.ToString();
     }
 }

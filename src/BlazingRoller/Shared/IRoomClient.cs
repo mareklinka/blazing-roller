@@ -4,6 +4,6 @@ namespace BlazingRoller.Shared
 {
     public interface IRoomClient
     {
-        Task ReceiveRoll(int seed);
+        Task ReceiveRoll(DiceThrowConfiguration config);
     }
 }

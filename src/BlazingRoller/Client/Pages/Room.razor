@@ -2,6 +2,7 @@
 
 @using Microsoft.AspNetCore.SignalR.Client
 @using System.Text
+@using System.Text.Json
 
 @inject NavigationManager Navigator
 @inject SessionStorageService Storage
@@ -54,9 +55,9 @@
             .WithAutomaticReconnect()
             .Build();
 
-        hubConnection.On<int>("ReceiveRoll", async (seed) =>
+        hubConnection.On<DiceThrowConfiguration>("ReceiveRoll", async (config) =>
         {
-            await JSRuntime.InvokeVoidAsync("engine.rollDice", seed);
+            await InvokeUnityRoll(config);
             StateHasChanged();
         });
 
@@ -71,11 +72,30 @@
         ParseInput(diceExpression);
 
         var seed = new Random().Next();
+        var config =
+            new DiceThrowConfiguration
+            {
+                RandomSeed = seed,
+                Dice = new List<DieThrowConfiguration>
+                    {
+                        new DieThrowConfiguration
+                        {
+                            Id = 0,
+                            Sides = (int)Die.D6
+                        }
+                    }
+            };
 
-        await JSRuntime.InvokeVoidAsync("engine.rollDice", seed);
-        Console.WriteLine($"Seed returned from Unity: {seed}");
+        Console.WriteLine($"Random seed passed to Unity: {seed}");
 
-        await hubConnection.SendAsync("RollDice", seed);
+        await InvokeUnityRoll(config);
+        await hubConnection.SendAsync("RollDice", config);
+    }
+
+    private async Task InvokeUnityRoll(DiceThrowConfiguration config)
+    {
+        var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { IgnoreNullValues = true });
+        await JSRuntime.InvokeVoidAsync("engine.rollDice", json);
     }
 
     private void ParseInput(string input)

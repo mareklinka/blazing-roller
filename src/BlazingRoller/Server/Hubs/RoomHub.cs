@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using BlazingRoller.Shared;
 using Microsoft.AspNetCore.SignalR;
@@ -13,10 +12,10 @@ namespace BlazingRoller.Server.Hubs
             return Groups.AddToGroupAsync(Context.ConnectionId, roomKey);
         }
 
-        public async Task RollDice(int seed)
+        public async Task RollDice(DiceThrowConfiguration config)
         {
             var roomKey = Context.GetHttpContext().Request.Query["roomKey"].ToString();
-            await Clients.OthersInGroup(roomKey).ReceiveRoll(seed);
+            await Clients.OthersInGroup(roomKey).ReceiveRoll(config);
         }
     }
 }
