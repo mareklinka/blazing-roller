@@ -5,12 +5,12 @@ export class DiceEngine {
     }
 
 
-    rollDice(): void {
+    rollDice(seed: number): void {
         if (!this.unityInstance) {
             return;
         }
 
-        this.unityInstance.SendMessage("DiceManager", "NewThrow")
+        this.unityInstance.SendMessage("DiceManager", "NewThrow", seed);
     }
 }
 

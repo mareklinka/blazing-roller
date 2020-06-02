@@ -15,18 +15,16 @@ public class DiceManagerScript : MonoBehaviour
     {
     }
 
-    public void NewThrow()
+    public string NewThrow(int seed)
     {
-        Debug.Log("Starting NewThrow");
-        var dice = GameObject.FindGameObjectsWithTag("Dice");
+        Debug.Log($"Seed used for randomization: {seed}");
 
-        Debug.Log($"Found {dice.Length} dice");
-        foreach (var die in dice)
+        foreach (var die in GameObject.FindGameObjectsWithTag("Dice"))
         {
             var script = die.GetComponent<InitScript>();
-            script.RandomStart();
+            script.RandomStart(seed);
         }
 
-        Debug.Log("Done with NewThrow");
+        return seed.ToString();
     }
 }

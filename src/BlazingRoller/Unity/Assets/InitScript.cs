@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class InitScript : MonoBehaviour
 {
@@ -9,7 +8,6 @@ public class InitScript : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        RandomStart();
     }
 
     // Update is called once per frame
@@ -17,16 +15,14 @@ public class InitScript : MonoBehaviour
     {
     }
 
-    public void RandomStart()
+    public void RandomStart(int seed)
     {
-        var dice = GameObject.FindGameObjectsWithTag("Dice");
-        Debug.Log($"Found {dice.Length} dice");
         transform.rotation = new Quaternion(0,0,0,1);
-        var random = new System.Random();
+        var r = new System.Random(seed);
 
         transform.position = new Vector3(0, 10, 0);
 
-        rb.velocity = new Vector3((float)(60), 0, (float)(60));
-        rb.angularVelocity = new Vector3((float)(10), (float)(10), (float)(10));
+        rb.velocity = new Vector3((float)(60 + 60 * r.NextDouble()), 0, (float)(60 + 60 * r.NextDouble()));
+        rb.angularVelocity = new Vector3((float)(10 + 7 * r.NextDouble()), (float)(10 + 7 * r.NextDouble()), (float)(10 + 7 * r.NextDouble()));
     }
 }

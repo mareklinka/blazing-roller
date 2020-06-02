@@ -54,10 +54,9 @@
             .WithAutomaticReconnect()
             .Build();
 
-        hubConnection.On<string>("ReceiveRoll", async (sample) =>
+        hubConnection.On<int>("ReceiveRoll", async (seed) =>
         {
-            await JSRuntime.InvokeVoidAsync("engine.rollDice");
-            Console.WriteLine(sample);
+            await JSRuntime.InvokeVoidAsync("engine.rollDice", seed);
             StateHasChanged();
         });
 
@@ -69,7 +68,19 @@
 
     public async Task Roll()
     {
-        if (string.IsNullOrWhiteSpace(diceExpression))
+        ParseInput(diceExpression);
+
+        var seed = new Random().Next();
+
+        await JSRuntime.InvokeVoidAsync("engine.rollDice", seed);
+        Console.WriteLine($"Seed returned from Unity: {seed}");
+
+        await hubConnection.SendAsync("RollDice", seed);
+    }
+
+    private void ParseInput(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
         {
             return;
         }
@@ -88,9 +99,6 @@
         }
 
         parsedDice = sb.ToString();
-
-        await JSRuntime.InvokeVoidAsync("engine.rollDice");
-        await hubConnection.SendAsync("RollDice", $"User {Storage.User} is rolling");
     }
 
     public async ValueTask DisposeAsync()

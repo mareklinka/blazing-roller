@@ -13,10 +13,10 @@ namespace BlazingRoller.Server.Hubs
             return Groups.AddToGroupAsync(Context.ConnectionId, roomKey);
         }
 
-        public async Task RollDice(string sample)
+        public async Task RollDice(int seed)
         {
             var roomKey = Context.GetHttpContext().Request.Query["roomKey"].ToString();
-            await Clients.OthersInGroup(roomKey).ReceiveRoll(sample);
+            await Clients.OthersInGroup(roomKey).ReceiveRoll(seed);
         }
     }
 }
