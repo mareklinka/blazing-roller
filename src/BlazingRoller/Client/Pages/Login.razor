@@ -1,0 +1,47 @@
+@page "/login"
+
+@inject HttpClient Http
+@inject NavigationManager Navigator
+@inject SessionStorageService Storage
+
+<div class="text-center">
+    <EditForm Model="@loginModel" OnValidSubmit="LogIn" class="form-signin">
+        <DataAnnotationsValidator />
+
+        <img class="mb-4" src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+        <h3 class="h3 mb-3 font-weight-normal">How would you like to be known today?</h3>
+        <label for="inputUsername" class="sr-only">Username</label>
+        <InputText id="inputUsername" class="form-control" placeholder="Username" @bind-Value="loginModel.UserName" autofocus="" />
+        <h3 class="h3 mb-3 font-weight-normal">Where would you like to play today?</h3>
+        <label for="inputRoom" class="sr-only">Room name</label>
+        <InputText id="inputRoom" class="form-control" placeholder="Room name" @bind-Value="loginModel.RoomName" />
+        <label for="inputRoomPassword" class="sr-only">Room name</label>
+        <InputText type="password" id="inputRoomPassword" class="form-control" placeholder="Password" @bind-Value="loginModel.RoomPassword" />
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Let's roll</button>
+    </EditForm>
+</div>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+
+    private async Task LogIn()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/login", loginModel);
+            response.EnsureSuccessStatusCode();
+
+            var roomInfo = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+            Storage.User = loginModel.UserName;
+            Storage.Room = loginModel.RoomName;
+            Storage.RoomKey = roomInfo.RoomKey;
+
+            Navigator.NavigateTo($"/room/{roomInfo.RoomId}");
+        }
+        catch (System.Exception)
+        {
+            Console.WriteLine("errors and what not");
+        }
+    }
+}

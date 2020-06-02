@@ -348,3 +348,10 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# JS is compiled dynamically, no need to commit
+src/BlazingRoller/Client/wwwroot/js/*.js
+
+# Unity output
+src/BlazingRoller/Server/wwwroot/Build/*
+src/BlazingRoller/Server/wwwroot/TemplateData/*

@@ -1,0 +1,101 @@
+﻿@page "/room/{RoomId:guid}"
+
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Text
+
+@inject NavigationManager Navigator
+@inject SessionStorageService Storage
+@inject IJSRuntime JSRuntime
+
+@implements IAsyncDisposable
+
+<h1>Welcome to thing or what</h1>
+<div>Username: @Storage.User</div>
+<div>Room: @Storage.Room</div>
+<div>
+    <input type="text" @bind="diceExpression" class="form-control"/>
+</div>
+<div>
+    @parsedDice
+</div>
+<div>
+    <button type="button" class="btn btn-primary" @onclick="Roll">Roll!</button>
+</div>
+<hr />
+<div class="webgl-content">
+    <div id="unityContainer" style="width: 800px; height: 450px"></div>
+    <div class="footer">
+    <div class="webgl-logo"></div>
+    <div class="fullscreen" onclick="unityInstance.SetFullscreen(1)"></div>
+    <div class="title">DiceRoller</div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid RoomId { get; set; }
+
+    private string diceExpression;
+
+    private string parsedDice;
+
+    private HubConnection hubConnection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Storage.User) || string.IsNullOrEmpty(Storage.Room))
+        {
+            Navigator.NavigateTo("/login");
+            return;
+        }
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigator.ToAbsoluteUri($"/roomHub?roomKey={Storage.RoomKey}"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<string>("ReceiveRoll", async (sample) =>
+        {
+            await JSRuntime.InvokeVoidAsync("engine.rollDice");
+            Console.WriteLine(sample);
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+        await hubConnection.SendAsync("JoinRoom");
+
+        await JSRuntime.InvokeVoidAsync("BlazingRollerLib.init", "diceCanvas");
+    }
+
+    public async Task Roll()
+    {
+        if (string.IsNullOrWhiteSpace(diceExpression))
+        {
+            return;
+        }
+
+        var parsed = DieParser.Parse(diceExpression);
+
+        var sb = new StringBuilder();
+        foreach (var d in parsed.Dice)
+        {
+            sb.AppendLine(d.ToString());
+        }
+
+        foreach (var d in parsed.Constants)
+        {
+            sb.AppendLine(d.ToString());
+        }
+
+        parsedDice = sb.ToString();
+
+        await JSRuntime.InvokeVoidAsync("engine.rollDice");
+        await hubConnection.SendAsync("RollDice", $"User {Storage.User} is rolling");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await hubConnection.SendAsync("LeaveRoom");
+        await hubConnection.DisposeAsync();
+    }
+}

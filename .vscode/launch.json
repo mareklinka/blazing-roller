@@ -1,0 +1,21 @@
+{
+   // Use IntelliSense to find out which attributes exist for C# debugging
+   // Use hover for the description of the existing attributes
+   // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+   "version": "0.2.0",
+   "configurations": [
+        {
+            "name": "Backend",
+            "type": "blazorwasm",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "hosted": true,
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/src/BlazingRoller/Server/bin/Debug/netcoreapp3.1/BlazingRoller.Server.dll",
+            "cwd": "${workspaceFolder}/src/BlazingRoller/Server",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        }
+    ]
+}
