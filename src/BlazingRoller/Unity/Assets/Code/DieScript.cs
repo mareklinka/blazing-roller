@@ -22,7 +22,7 @@ public class DieScript : MonoBehaviour
 
         transform.position = new Vector3(Randomize(-2.5F, 5, r), Randomize(10, 5, r), Randomize(-2.5F, 5, r));
 
-        _rb.velocity = new Vector3(Randomize(-30, 60, r), Randomize(3, 6, r), Randomize(-30, 60, r));
+        _rb.velocity = new Vector3(Randomize(-40, 80, r), Randomize(8, 6, r), Randomize(-40, 80, r));
         _rb.angularVelocity = new Vector3(Randomize(-10, 20, r), Randomize(-10, 20, r), Randomize(-10, 20, r));
     }
 

@@ -5,7 +5,9 @@ using UnityEngine;
 
 public class DiceManagerScript : MonoBehaviour
 {
-    private int _frameCounter = 0;
+    private int _frameCounter;
+    private Vector3 _diceStartPosition = new Vector3(0,-15, 0);
+    private Quaternion _diceStartOrientation = new Quaternion(0,0, 0, 1);
     private BlazingRoller.Unity.DiceThrowConfiguration _throwConfiguration;
 
     public GameObject prefabD4;
@@ -93,20 +95,33 @@ public class DiceManagerScript : MonoBehaviour
 
     private GameObject CreateDie(int sides)
     {
+        GameObject die;
         switch (sides)
         {
             case 4:
-                return Instantiate(prefabD4, new Vector3(0, -10, 0), new Quaternion(0, 0, 0, 1));
+                die = Instantiate(prefabD4, _diceStartPosition, _diceStartOrientation);
+                die.transform.localScale = new Vector3(2.2F, 2.2F, 2.2F);
+                return die;
             case 6:
-                return Instantiate(prefabD6, new Vector3(0, -10, 0), new Quaternion(0, 0, 0, 1));
+                die = Instantiate(prefabD6, _diceStartPosition, _diceStartOrientation);
+                die.transform.localScale = new Vector3(2.3F, 2.3F, 2.3F);
+                return die;
             case 8:
-                return Instantiate(prefabD8, new Vector3(0, -10, 0), new Quaternion(0, 0, 0, 1));
+                die = Instantiate(prefabD8, _diceStartPosition, _diceStartOrientation);
+                die.transform.localScale = new Vector3(2, 2, 2);
+                return die;
             case 10:
-                return Instantiate(prefabD10, new Vector3(0, -10, 0), new Quaternion(0, 0, 0, 1));
+                die = Instantiate(prefabD10, _diceStartPosition, _diceStartOrientation);
+                die.transform.localScale = new Vector3(2.3F, 2.3F, 2.3F);
+                return die;
             case 12:
-                return Instantiate(prefabD12, new Vector3(0, -10, 0), new Quaternion(0, 0, 0, 1));
+                die = Instantiate(prefabD12, _diceStartPosition, _diceStartOrientation);
+                die.transform.localScale = new Vector3(2, 2, 2);
+                return die;
             case 20:
-                return Instantiate(prefabD20, new Vector3(0, -10, 0), new Quaternion(0, 0, 0, 1));
+                die = Instantiate(prefabD20, _diceStartPosition, _diceStartOrientation);
+                die.transform.localScale = new Vector3(2.2F, 2.2F, 2.2F);
+                return die;
             default:
                 Debug.Log($"Invalid die encountered: {sides}");
                 return null;
@@ -118,7 +133,6 @@ public class DiceManagerScript : MonoBehaviour
         die.tag = "Dice";
         die.AddComponent<DieScript>();
         die.GetComponent<DieScript>().SetMultiplier(valueMultiplier);
-        die.transform.localScale = new Vector3(2, 2, 2);
     }
 
     private void RenderResultsUi()
