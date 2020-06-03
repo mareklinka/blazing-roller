@@ -351,7 +351,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03c0b45266b7c4149bb06c5085eaed98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  prefabD4: {fileID: 5730423195989157687, guid: 2e15671a257719f45b2d2c6e0805ee5c,
+    type: 3}
   prefabD6: {fileID: 5706793339727229867, guid: 232d0a03b7e824e49a89587885fcce67,
+    type: 3}
+  prefabD8: {fileID: 4273911836019275558, guid: e959523bec8ff664f80dd7731504cda2,
+    type: 3}
+  prefabD10: {fileID: 1920660255238441926, guid: 7483ce376c883ac42bb49133f9a51830,
+    type: 3}
+  prefabD12: {fileID: 129734511697091833, guid: 9309f1f566799bf499b8a1b68432574f,
+    type: 3}
+  prefabD20: {fileID: 130529378359654421, guid: f283c50c0e4d6cc4ab4c44039645bf93,
     type: 3}
 --- !u!1 &705507993
 GameObject:
