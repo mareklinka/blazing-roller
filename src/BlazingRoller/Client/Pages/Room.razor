@@ -1,9 +1,9 @@
 ﻿@page "/room/{RoomId:guid}"
 
 @using Microsoft.AspNetCore.SignalR.Client
-@using System.Text
 @using System.Text.Json
 @using System.IO
+@using BlazingRoller.Client.Models
 
 @inject NavigationManager Navigator
 @inject SessionStorageService Storage
@@ -11,25 +11,35 @@
 
 @implements IAsyncDisposable
 
-<h1>Welcome to thing or what</h1>
-<div>Username: @Storage.User</div>
-<div>Room: @Storage.Room</div>
-<div>
-    <input type="text" @bind="diceExpression" class="form-control"/>
-</div>
-<div>
-    @parsedDice
-</div>
-<div>
-    <button type="button" class="btn btn-primary" @onclick="Roll">Roll!</button>
-</div>
-<hr />
-<div class="webgl-content">
-    <div id="unityContainer" style="width: 800px; height: 450px"></div>
-    <div class="footer">
-    <div class="webgl-logo"></div>
-    <div class="fullscreen" onclick="unityInstance.SetFullscreen(1)"></div>
-    <div class="title">DiceRoller</div>
+<div class="room-name">Room: @Storage.Room</div>
+
+<div class="row">
+    <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
+        <div class="webgl-content">
+            <div id="unityContainer" style="width: 800px; height: 450px"></div>
+        </div>
+    </div>
+    <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
+
+        <div class="row">
+            <div class="col-6">
+                <input type="text" @bind="diceExpression" class="form-control" autocomplete=""/>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-primary" @onclick="Roll">Roll!</button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="dice-log-container">
+                    @foreach (var log in throwLogs)
+                    {
+                        <div class="dice-log"><span class="dice-log-name">@(log.Name): </span><span class="dice-log-text">@log.Text</span></div>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -39,9 +49,9 @@
 
     private string diceExpression;
 
-    private string parsedDice;
-
     private HubConnection hubConnection;
+
+    private List<DiceThrowLogModel> throwLogs = new List<DiceThrowLogModel>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,11 +66,7 @@
             .WithAutomaticReconnect()
             .Build();
 
-        hubConnection.On<DiceThrowConfiguration>("ReceiveRoll", async (config) =>
-        {
-            await InvokeUnityRoll(config);
-            StateHasChanged();
-        });
+        hubConnection.On<string, DiceThrowConfiguration>("ReceiveRoll", ReceiveRoll);
 
         await hubConnection.StartAsync();
         await hubConnection.SendAsync("JoinRoom");
@@ -92,10 +98,19 @@
                     }).ToList()
             };
 
+        throwLogs.Add(new DiceThrowLogModel { Name = Storage.User, Text = config.ToString() });
+
         Console.WriteLine($"Random seed passed to Unity: {seed}");
 
         await InvokeUnityRoll(config);
-        await hubConnection.SendAsync("RollDice", config);
+        await hubConnection.SendAsync("RollDice", Storage.User, config);
+    }
+
+    private async Task ReceiveRoll(string username, DiceThrowConfiguration config)
+    {
+        throwLogs.Add(new DiceThrowLogModel { Name = username, Text = config.ToString() });
+        await InvokeUnityRoll(config);
+        StateHasChanged();
     }
 
     private async Task InvokeUnityRoll(DiceThrowConfiguration config)
