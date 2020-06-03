@@ -355,3 +355,6 @@ src/BlazingRoller/Client/wwwroot/js/*.js
 # Unity output
 src/BlazingRoller/Server/wwwroot/Build/*
 src/BlazingRoller/Server/wwwroot/TemplateData/*
+
+
+src/BlazingRoller/Unity/Assets/ThirdParty/
