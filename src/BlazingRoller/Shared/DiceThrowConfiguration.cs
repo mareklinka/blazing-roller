@@ -6,6 +6,8 @@ namespace BlazingRoller.Shared
     {
         public int RandomSeed { get; set; }
 
+        public int Offset { get; set; }
+
         public List<DieThrowConfiguration> Dice { get; set; }
     }
 }

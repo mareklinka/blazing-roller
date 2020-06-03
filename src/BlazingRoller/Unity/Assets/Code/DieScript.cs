@@ -2,11 +2,12 @@
 
 public class DieScript : MonoBehaviour
 {
-    private Rigidbody rb;
+    private int _valueMultiplier;
+    private Rigidbody _rb;
 
     void Awake()
     {
-        rb = GetComponent<Rigidbody>();
+        _rb = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
@@ -21,8 +22,18 @@ public class DieScript : MonoBehaviour
 
         transform.position = new Vector3(Randomize(-2.5F, 5, r), Randomize(10, 5, r), Randomize(-2.5F, 5, r));
 
-        rb.velocity = new Vector3(Randomize(-30, 60, r), Randomize(3, 6, r), Randomize(-30, 60, r));
-        rb.angularVelocity = new Vector3(Randomize(-10, 20, r), Randomize(-10, 20, r), Randomize(-10, 20, r));
+        _rb.velocity = new Vector3(Randomize(-30, 60, r), Randomize(3, 6, r), Randomize(-30, 60, r));
+        _rb.angularVelocity = new Vector3(Randomize(-10, 20, r), Randomize(-10, 20, r), Randomize(-10, 20, r));
+    }
+
+    public void SetMultiplier(int multiplier)
+    {
+        _valueMultiplier = multiplier;
+    }
+
+    public int GetValue()
+    {
+        return GetComponent<DiceStats>().side * _valueMultiplier;
     }
 
     private float Randomize(float origin, float range, System.Random random)

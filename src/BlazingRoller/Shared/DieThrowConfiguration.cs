@@ -5,5 +5,7 @@ namespace BlazingRoller.Shared
         public int Id { get; set; }
 
         public int Sides { get; set; }
+
+        public int Multiplier { get; set; }
     }
 }

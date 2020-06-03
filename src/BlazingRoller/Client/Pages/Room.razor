@@ -70,14 +70,26 @@
 
     public async Task Roll()
     {
-        var dice = ParseInput(diceExpression);
+        var diceConfig = ParseInput(diceExpression);
+
+        if (diceConfig == null)
+        {
+            return;
+        }
 
         var seed = new Random().Next();
         var config =
             new DiceThrowConfiguration
             {
                 RandomSeed = seed,
-                Dice = dice.Select(_ => new DieThrowConfiguration { Id = _.Id, Sides = (int)_.Die }).ToList()
+                Offset = diceConfig.Constants.DefaultIfEmpty(0).Sum(),
+                Dice = diceConfig.Dice.Select(_ =>
+                    new DieThrowConfiguration
+                    {
+                        Id = _.Id,
+                        Sides = (int)_.Die,
+                        Multiplier = _.Multiplicity
+                    }).ToList()
             };
 
         Console.WriteLine($"Random seed passed to Unity: {seed}");
@@ -92,23 +104,23 @@
         await JSRuntime.InvokeVoidAsync("engine.rollDice", json);
     }
 
-    private IReadOnlyCollection<DieParser.DieDefinition> ParseInput(string input)
+    private DieParser.ParsingResult ParseInput(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
         {
-            return new List<DieParser.DieDefinition>();
+            return null;
         }
 
         try
         {
             var parsed = DieParser.Parse(diceExpression);
 
-            return parsed.Dice;
+            return parsed;
         }
         catch (InvalidDataException ex)
         {
             Console.WriteLine($"ERROR: {ex.Message}");
-            return new List<DieParser.DieDefinition>();
+            return null;
         }
     }
 

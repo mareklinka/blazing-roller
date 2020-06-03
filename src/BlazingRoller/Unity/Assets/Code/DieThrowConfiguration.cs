@@ -8,5 +8,7 @@ namespace BlazingRoller.Unity
         public int Id;
 
         public int Sides;
+
+        public int Multiplier;
     }
 }

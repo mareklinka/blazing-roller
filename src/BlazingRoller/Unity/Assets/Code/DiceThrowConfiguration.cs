@@ -7,6 +7,8 @@ namespace BlazingRoller.Unity
     {
         public int RandomSeed;
 
+        public int Offset;
+
         public DieThrowConfiguration[] Dice;
     }
 }
