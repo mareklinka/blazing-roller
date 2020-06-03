@@ -187,3 +187,31 @@ app {
     margin-left: auto;
     margin-right: auto;
 }
+
+.room-name {
+    font-size: 24px;
+    font-weight: bolder;
+}
+
+.webgl-column {
+    margin-bottom: 8px;
+}
+
+.button-separator{
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.dice-log-name {
+    text-transform: capitalize;
+    font-weight: bolder;
+}
+
+.dice-log-text {
+    font-weight: lighter;
+}
+
+.dice-log-container {
+    max-height: 420px;
+    overflow-y: auto;
+}

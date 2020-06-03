@@ -11,28 +11,31 @@
 
 @implements IAsyncDisposable
 
-<div class="room-name">Room: @Storage.Room</div>
+<div class="room-name">@Storage.Room</div>
 
 <div class="row">
-    <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
+    <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12 webgl-column">
         <div class="webgl-content">
             <div id="unityContainer" style="width: 800px; height: 450px"></div>
         </div>
     </div>
     <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
-
         <div class="row">
             <div class="col-6">
                 <input type="text" @bind="diceExpression" class="form-control" autocomplete=""/>
             </div>
             <div class="col-auto">
                 <button type="button" class="btn btn-primary" @onclick="Roll">Roll!</button>
+                <span class="button-separator"></span>
+                <button type="button" class="btn btn-success" @onclick='() => RollCore("1D20")'>1D20</button>
+                <button type="button" class="btn btn-success" @onclick='() => RollCore("2D20")'>2D20</button>
             </div>
         </div>
 
         <div class="row">
             <div class="col-12">
-                <div class="dice-log-container">
+
+                <div class="dice-log-container" @ref="logContainer">
                     @foreach (var log in throwLogs)
                     {
                         <div class="dice-log"><span class="dice-log-name">@(log.Name): </span><span class="dice-log-text">@log.Text</span></div>
@@ -46,6 +49,8 @@
 @code {
     [Parameter]
     public Guid RoomId { get; set; }
+
+    private ElementReference logContainer;
 
     private string diceExpression;
 
@@ -76,7 +81,12 @@
 
     public async Task Roll()
     {
-        var diceConfig = ParseInput(diceExpression);
+        await RollCore(diceExpression);
+    }
+
+    private async Task RollCore(string expression)
+    {
+        var diceConfig = ParseInput(expression);
 
         if (diceConfig == null)
         {
@@ -99,6 +109,7 @@
             };
 
         throwLogs.Add(new DiceThrowLogModel { Name = Storage.User, Text = config.ToString() });
+        await JSRuntime.InvokeVoidAsync("ElementInterop.scrollToEnd", logContainer);
 
         Console.WriteLine($"Random seed passed to Unity: {seed}");
 
@@ -109,8 +120,10 @@
     private async Task ReceiveRoll(string username, DiceThrowConfiguration config)
     {
         throwLogs.Add(new DiceThrowLogModel { Name = username, Text = config.ToString() });
+
         await InvokeUnityRoll(config);
         StateHasChanged();
+        await JSRuntime.InvokeVoidAsync("ElementInterop.scrollToEnd", logContainer);
     }
 
     private async Task InvokeUnityRoll(DiceThrowConfiguration config)
@@ -128,7 +141,7 @@
 
         try
         {
-            var parsed = DieParser.Parse(diceExpression);
+            var parsed = DieParser.Parse(input);
 
             return parsed;
         }

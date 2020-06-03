@@ -19,3 +19,15 @@ export function init(): void {
     window["engine"] = engine;
     engine.initialize();
 }
+
+export class ElementInterop
+{
+    scrollToEnd(element: HTMLElement): void {
+        // we need to wait until Blazor redraws
+        window.setTimeout(() => {
+            element.scrollTop = element.scrollHeight;
+        }, 0);
+    }
+}
+
+window["ElementInterop"] = new ElementInterop();
