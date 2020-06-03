@@ -30,4 +30,12 @@ export class ElementInterop
     }
 }
 
+export class UnityInterop
+{
+    deliverThrowValue(id: string, value: number): void {
+        window["DotNet"].invokeMethod("BlazingRoller.Client", "ReceiveThrowValueProxy", id, value);
+    }
+}
+
 window["ElementInterop"] = new ElementInterop();
+window["UnityInterop"] = new UnityInterop();

@@ -215,3 +215,7 @@ app {
     max-height: 420px;
     overflow-y: auto;
 }
+
+.dice-log-value {
+    font-weight: bolder;
+}

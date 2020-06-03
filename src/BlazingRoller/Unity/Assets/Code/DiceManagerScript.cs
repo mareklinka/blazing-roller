@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System.Runtime.InteropServices;
 
 public class DiceManagerScript : MonoBehaviour
 {
@@ -9,6 +10,10 @@ public class DiceManagerScript : MonoBehaviour
     private Vector3 _diceStartPosition = new Vector3(0,-15, 0);
     private Quaternion _diceStartOrientation = new Quaternion(0,0, 0, 1);
     private BlazingRoller.Unity.DiceThrowConfiguration _throwConfiguration;
+    private bool _resultSent = false;
+
+    [DllImport("__Internal")]
+    private static extern void PropagateValue(string id, int value);
 
     public GameObject prefabD4;
     public GameObject prefabD6;
@@ -22,6 +27,7 @@ public class DiceManagerScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Application.targetFrameRate = 60;
 #if !UNITY_EDITOR && UNITY_WEBGL
         WebGLInput.captureAllKeyboardInput = false;
 #endif
@@ -48,6 +54,7 @@ public class DiceManagerScript : MonoBehaviour
     {
         Debug.Log(serializedConfig);
 
+        _resultSent = false;
         _throwConfiguration = JsonUtility.FromJson<BlazingRoller.Unity.DiceThrowConfiguration>(serializedConfig);
 
         var random = new System.Random(_throwConfiguration.RandomSeed);
@@ -233,8 +240,16 @@ public class DiceManagerScript : MonoBehaviour
             sb.Append(-_throwConfiguration.Offset);
         }
 
+        int total = values.Sum() + _throwConfiguration.Offset;
+
+        if (!_resultSent)
+        {
+            PropagateValue(_throwConfiguration.ThrowId, total);
+            _resultSent = true;
+        }
+
         sb.Append(" = ");
-        sb.Append(values.Sum() + _throwConfiguration.Offset);
+        sb.Append(total);
 
         return sb.ToString();
     }

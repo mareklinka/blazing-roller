@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
@@ -6,6 +7,8 @@ namespace BlazingRoller.Shared
 {
     public class DiceThrowConfiguration
     {
+        public Guid ThrowId { get; set; }
+
         public int RandomSeed { get; set; }
 
         public int Offset { get; set; }
@@ -56,7 +59,7 @@ namespace BlazingRoller.Shared
             }
             else if (Offset < 0)
             {
-                sb.Append(" - ").Append(Offset);
+                sb.Append(" - ").Append(-Offset);
             }
 
             return sb.ToString();

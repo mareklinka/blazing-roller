@@ -38,7 +38,14 @@
                 <div class="dice-log-container" @ref="logContainer">
                     @foreach (var log in throwLogs)
                     {
-                        <div class="dice-log"><span class="dice-log-name">@(log.Name): </span><span class="dice-log-text">@log.Text</span></div>
+                        <div class="dice-log">
+                            <span class="dice-log-name">@(log.Name): </span>
+                            <span class="dice-log-text">@log.Text</span>
+                            @if (log.Result is {})
+                            {
+                                <span class="dice-log-value"> = @log.Result</span>
+                            }
+                        </div>
                     }
                 </div>
             </div>
@@ -49,6 +56,8 @@
 @code {
     [Parameter]
     public Guid RoomId { get; set; }
+
+    private static Action<string, int> deliverThrowValueAction;
 
     private ElementReference logContainer;
 
@@ -65,6 +74,8 @@
             Navigator.NavigateTo("/login");
             return;
         }
+
+        deliverThrowValueAction = ReceiveThrowValue;
 
         hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigator.ToAbsoluteUri($"/roomHub?roomKey={Storage.RoomKey}"))
@@ -84,6 +95,12 @@
         await RollCore(diceExpression);
     }
 
+    [JSInvokable]
+    public static void ReceiveThrowValueProxy(string id, int value)
+    {
+        deliverThrowValueAction.Invoke(id, value);
+    }
+
     private async Task RollCore(string expression)
     {
         var diceConfig = ParseInput(expression);
@@ -99,6 +116,7 @@
             {
                 RandomSeed = seed,
                 Offset = diceConfig.Constants.DefaultIfEmpty(0).Sum(),
+                ThrowId = Guid.NewGuid(),
                 Dice = diceConfig.Dice.Select(_ =>
                     new DieThrowConfiguration
                     {
@@ -108,7 +126,7 @@
                     }).ToList()
             };
 
-        throwLogs.Add(new DiceThrowLogModel { Name = Storage.User, Text = config.ToString() });
+        throwLogs.Add(new DiceThrowLogModel { Id = config.ThrowId, Name = Storage.User, Text = config.ToString() });
         await JSRuntime.InvokeVoidAsync("ElementInterop.scrollToEnd", logContainer);
 
         Console.WriteLine($"Random seed passed to Unity: {seed}");
@@ -119,7 +137,7 @@
 
     private async Task ReceiveRoll(string username, DiceThrowConfiguration config)
     {
-        throwLogs.Add(new DiceThrowLogModel { Name = username, Text = config.ToString() });
+        throwLogs.Add(new DiceThrowLogModel { Id = config.ThrowId,  Name = username, Text = config.ToString() });
 
         await InvokeUnityRoll(config);
         StateHasChanged();
@@ -150,6 +168,19 @@
             Console.WriteLine($"ERROR: {ex.Message}");
             return null;
         }
+    }
+
+    private void ReceiveThrowValue(string id, int value)
+    {
+        var guid = Guid.Parse(id);
+        var log = throwLogs.SingleOrDefault(_ => _.Id == guid);
+
+        if (log is {})
+        {
+            log.Result = value;
+        }
+
+        StateHasChanged();
     }
 
     public async ValueTask DisposeAsync()
