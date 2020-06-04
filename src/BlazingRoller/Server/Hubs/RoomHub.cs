@@ -1,11 +1,21 @@
+using System;
 using System.Threading.Tasks;
+using BlazingRoller.Data;
 using BlazingRoller.Shared;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlazingRoller.Server.Hubs
 {
     public class RoomHub : Hub<IRoomClient>
     {
+        private readonly DataContext _db;
+
+        public RoomHub(DataContext db)
+        {
+            _db = db;
+        }
+
         public Task JoinRoom()
         {
             var roomKey = Context.GetHttpContext().Request.Query["roomKey"].ToString();
@@ -14,7 +24,23 @@ namespace BlazingRoller.Server.Hubs
 
         public async Task RollDice(string username, DiceThrowConfiguration config)
         {
+            var roomId = Guid.Parse(Context.GetHttpContext().Request.Query["roomId"].ToString());
             var roomKey = Context.GetHttpContext().Request.Query["roomKey"].ToString();
+
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+
+            var room = await _db.Rooms.SingleOrDefaultAsync(_ => _.RoomId == roomId);
+
+            if (room is null)
+            {
+                return;
+            }
+
+            room.LastAction = DateTime.Now;
+
+            await _db.SaveChangesAsync();
+            await transaction.CommitAsync();
+
             await Clients.OthersInGroup(roomKey).ReceiveRoll(username, config);
         }
     }

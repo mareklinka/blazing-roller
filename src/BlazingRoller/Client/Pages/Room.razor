@@ -78,7 +78,7 @@
         deliverThrowValueAction = ReceiveThrowValue;
 
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigator.ToAbsoluteUri($"/roomHub?roomKey={Storage.RoomKey}"))
+            .WithUrl(Navigator.ToAbsoluteUri($"/roomHub?roomKey={Storage.RoomKey}&roomId={RoomId}"))
             .WithAutomaticReconnect()
             .Build();
 
