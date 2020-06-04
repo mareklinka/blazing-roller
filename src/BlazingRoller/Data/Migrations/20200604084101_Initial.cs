@@ -25,6 +25,12 @@ namespace BlazingRoller.Data.Migrations
                 {
                     table.PrimaryKey("PK_Rooms", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Rooms_RoomKey",
+                table: "Rooms",
+                column: "RoomKey",
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

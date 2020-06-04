@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazingRoller.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20200604074632_Initial")]
+    [Migration("20200604084101_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,6 +56,9 @@ namespace BlazingRoller.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RoomKey")
+                        .IsUnique();
 
                     b.ToTable("Rooms");
                 });

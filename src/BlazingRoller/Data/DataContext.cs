@@ -20,6 +20,8 @@ namespace BlazingRoller.Data
             roomBuilder.Property(_ => _.Name).IsRequired().HasMaxLength(100);
             roomBuilder.Property(_ => _.PasswordHash).IsRequired().HasMaxLength(64);
             roomBuilder.Property(_ => _.PasswordSalt).IsRequired().HasMaxLength(16);
+
+            roomBuilder.HasIndex(_ => _.RoomKey).IsUnique();
         }
     }
 }

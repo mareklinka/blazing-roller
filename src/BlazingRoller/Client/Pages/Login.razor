@@ -1,4 +1,5 @@
 @page "/login"
+@page "/login/{RoomId:guid}"
 
 @inject HttpClient Http
 @inject NavigationManager Navigator
@@ -14,7 +15,7 @@
         <InputText id="inputUsername" class="form-control" placeholder="Username" @bind-Value="loginModel.UserName" autofocus="" />
         <h3 class="h3 mb-3 font-weight-normal">Where would you like to play today?</h3>
         <label for="inputRoom" class="sr-only">Room name</label>
-        <InputText id="inputRoom" class="form-control" placeholder="Room name" @bind-Value="loginModel.RoomName" />
+        <InputText id="inputRoom" class="form-control" placeholder="Room name" @bind-Value="loginModel.RoomName" @bind-disabled="isRoomNameFixed"/>
         <label for="inputRoomPassword" class="sr-only">Room name</label>
         <InputText type="password" id="inputRoomPassword" class="form-control" placeholder="Password" @bind-Value="loginModel.RoomPassword" />
         <button class="btn btn-lg btn-primary btn-block" type="submit">Let's roll</button>
@@ -22,7 +23,34 @@
 </div>
 
 @code {
+    [Parameter]
+    public Guid? RoomId { get; set; }
+
     private LoginModel loginModel = new LoginModel();
+    private bool isRoomNameFixed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (RoomId is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await Http.GetAsync($"api/room/{RoomId.Value}/name");
+            response.EnsureSuccessStatusCode();
+
+            var roomName = await response.Content.ReadFromJsonAsync<string>();
+
+            loginModel.RoomName = roomName;
+            isRoomNameFixed = true;
+        }
+        catch (HttpRequestException)
+        {
+            Console.WriteLine("errors and what not");
+        }
+    }
 
     private async Task LogIn()
     {
@@ -39,7 +67,7 @@
 
             Navigator.NavigateTo($"/room/{roomInfo.RoomId}");
         }
-        catch (System.Exception)
+        catch (HttpRequestException)
         {
             Console.WriteLine("errors and what not");
         }

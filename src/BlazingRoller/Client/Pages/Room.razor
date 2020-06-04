@@ -71,7 +71,7 @@
     {
         if (string.IsNullOrEmpty(Storage.User) || string.IsNullOrEmpty(Storage.Room))
         {
-            Navigator.NavigateTo("/login");
+            Navigator.NavigateTo($"/login/{RoomId}");
             return;
         }
 

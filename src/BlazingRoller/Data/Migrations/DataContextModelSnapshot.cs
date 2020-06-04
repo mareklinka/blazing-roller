@@ -55,6 +55,9 @@ namespace BlazingRoller.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RoomKey")
+                        .IsUnique();
+
                     b.ToTable("Rooms");
                 });
 #pragma warning restore 612, 618
