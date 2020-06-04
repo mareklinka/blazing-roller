@@ -8,5 +8,12 @@ namespace BlazingRoller.Client.Services
         public string Room { get; set; }
 
         public Guid RoomKey { get; set; }
+
+        public void Clear()
+        {
+            User = null;
+            Room = null;
+            RoomKey = Guid.Empty;
+        }
     }
 }

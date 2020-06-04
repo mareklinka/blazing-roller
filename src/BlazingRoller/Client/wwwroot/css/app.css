@@ -197,11 +197,6 @@ app {
     margin-bottom: 8px;
 }
 
-.button-separator{
-    margin-left: 8px;
-    margin-right: 8px;
-}
-
 .dice-log-name {
     text-transform: capitalize;
     font-weight: bolder;
@@ -218,4 +213,13 @@ app {
 
 .dice-log-value {
     font-weight: bolder;
+}
+
+.room-reset-link {
+    text-align: right;
+}
+
+.leave-room-link {
+    font-size: 12px;
+    font-weight: lighter;
 }

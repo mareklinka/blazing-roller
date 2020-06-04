@@ -1,0 +1,166 @@
+@page "/create"
+@page "/create/{RoomId:guid}"
+
+@using System.Net
+@using Microsoft.Extensions.Logging
+
+@inject HttpClient Http
+@inject NavigationManager Navigator
+@inject SessionStorageService Storage
+@inject ILogger<Create> Logger
+
+<div class="text-center">
+    <EditForm Model="@loginModel" OnValidSubmit="LogIn" class="form-signin">
+        <DataAnnotationsValidator />
+
+        <div class="row">
+            <div class="col">
+                <h4 class="h4 mb-3 font-weight-normal">Create or join a room</h4>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-hat-wizard"></i></span>
+                    </div>
+                    <InputText class="form-control" placeholder="Your name" @bind-Value="loginModel.UserName" autofocus="" />
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col mb-3">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-dungeon"></i></span>
+                    </div>
+                    <InputText class="form-control" placeholder="Room name" @bind-Value="loginModel.RoomName" @bind-disabled="isRoomNameFixed"/>
+                </div>
+
+                @if(isRoomNameFixed)
+                {
+                    <div class="room-reset-link"><a @onclick="ResetRoom" href="#" @onclick:preventDefault>Use different room</a></div>
+                }
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                    </div>
+                    <InputText type="password" id="inputRoomPassword" class="form-control" placeholder="Room password" @bind-Value="loginModel.RoomPassword" />
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col">
+                <button class="btn btn-lg btn-primary btn-block" type="submit"><i class="fas fa-dice-d20"></i> Let's roll</button>
+            </div>
+        </div>
+    </EditForm>
+
+    <div class="row justify-content-center">
+        <div class="col-4">
+            @if (isUnauthorized)
+            {
+                <div class="alert alert-danger mb-3" role="alert"><i class="fas fa-exclamation-circle"></i> Access to the room denied - check your password and try again</div>
+            }
+
+            @if (isRoomNotFound)
+            {
+                <div class="alert alert-danger mb-3" role="alert"><i class="fas fa-exclamation-circle"></i> The room you are trying to access does not exist</div>
+            }
+
+            @if (isError)
+            {
+                <div class="alert alert-danger mb-3" role="alert"><i class="fas fa-exclamation-circle"></i> An error occurred while communicating with the server</div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid? RoomId { get; set; }
+
+    private LoginModel loginModel = new LoginModel();
+    private bool isRoomNameFixed;
+    private bool isUnauthorized;
+    private bool isRoomNotFound;
+    private bool isError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (RoomId is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await Http.GetAsync($"api/room/{RoomId.Value}/name");
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                isRoomNotFound = true;
+                return;
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            var roomName = await response.Content.ReadFromJsonAsync<string>();
+
+            loginModel.RoomName = roomName;
+            isRoomNameFixed = true;
+        }
+        catch (HttpRequestException ex)
+        {
+            isError = true;
+            Logger.LogError(ex, "Getting a room name from the server failed");
+        }
+    }
+
+    private async Task LogIn()
+    {
+        isRoomNotFound = false;
+        isUnauthorized = false;
+        isError = false;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/login", loginModel);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                isUnauthorized = true;
+                return;
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            var roomInfo = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+            Storage.User = loginModel.UserName;
+            Storage.Room = loginModel.RoomName;
+            Storage.RoomKey = roomInfo.RoomKey;
+
+            Navigator.NavigateTo($"/room/{roomInfo.RoomId}");
+        }
+        catch (HttpRequestException)
+        {
+            isError = true;
+            Console.WriteLine("errors and what not");
+        }
+    }
+
+    private void ResetRoom()
+    {
+        loginModel.RoomName = string.Empty;
+        isRoomNameFixed = false;
+    }
+}
