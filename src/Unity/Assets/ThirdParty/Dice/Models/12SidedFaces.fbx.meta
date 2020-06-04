@@ -1,0 +1,220 @@
+fileFormatVersion: 2
+guid: b2bb785f259c2904dacba7634509466c
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: 12SidedLow.002
+    100004: 12SidedLow.003
+    100006: 12SidedLow.004
+    100008: 12SidedLow.005
+    100010: 12SidedLow.006
+    100012: 12SidedLow.007
+    100014: 12SidedLow.008
+    100016: 12SidedLow.009
+    100018: 12SidedLow.010
+    100020: 12SidedLow.011
+    100022: 12SidedLow.012
+    100024: 12SidedLow.013
+    100026: 12SidedLow.014
+    100028: side1
+    100030: side10
+    100032: side11
+    100034: side12
+    100036: side2
+    100038: side3
+    100040: side4
+    100042: side5
+    100044: side6
+    100046: side7
+    100048: side8
+    100050: side9
+    400000: //RootNode
+    400002: 12SidedLow.002
+    400004: 12SidedLow.003
+    400006: 12SidedLow.004
+    400008: 12SidedLow.005
+    400010: 12SidedLow.006
+    400012: 12SidedLow.007
+    400014: 12SidedLow.008
+    400016: 12SidedLow.009
+    400018: 12SidedLow.010
+    400020: 12SidedLow.011
+    400022: 12SidedLow.012
+    400024: 12SidedLow.013
+    400026: 12SidedLow.014
+    400028: side1
+    400030: side10
+    400032: side11
+    400034: side12
+    400036: side2
+    400038: side3
+    400040: side4
+    400042: side5
+    400044: side6
+    400046: side7
+    400048: side8
+    400050: side9
+    2100000: No Name
+    2300000: 12SidedLow.002
+    2300002: 12SidedLow.003
+    2300004: 12SidedLow.004
+    2300006: 12SidedLow.005
+    2300008: 12SidedLow.006
+    2300010: 12SidedLow.007
+    2300012: 12SidedLow.008
+    2300014: 12SidedLow.009
+    2300016: 12SidedLow.010
+    2300018: 12SidedLow.011
+    2300020: 12SidedLow.012
+    2300022: 12SidedLow.013
+    2300024: 12SidedLow.014
+    2300026: side1
+    2300028: side10
+    2300030: side11
+    2300032: side12
+    2300034: side2
+    2300036: side3
+    2300038: side4
+    2300040: side5
+    2300042: side6
+    2300044: side7
+    2300046: side8
+    2300048: side9
+    3300000: 12SidedLow.002
+    3300002: 12SidedLow.003
+    3300004: 12SidedLow.004
+    3300006: 12SidedLow.005
+    3300008: 12SidedLow.006
+    3300010: 12SidedLow.007
+    3300012: 12SidedLow.008
+    3300014: 12SidedLow.009
+    3300016: 12SidedLow.010
+    3300018: 12SidedLow.011
+    3300020: 12SidedLow.012
+    3300022: 12SidedLow.013
+    3300024: 12SidedLow.014
+    3300026: side1
+    3300028: side10
+    3300030: side11
+    3300032: side12
+    3300034: side2
+    3300036: side3
+    3300038: side4
+    3300040: side5
+    3300042: side6
+    3300044: side7
+    3300046: side8
+    3300048: side9
+    4300000: 12SidedLow.014
+    4300002: 12SidedLow.013
+    4300004: 12SidedLow.012
+    4300006: 12SidedLow.011
+    4300008: 12SidedLow.010
+    4300010: 12SidedLow.009
+    4300012: 12SidedLow.008
+    4300014: 12SidedLow.007
+    4300016: 12SidedLow.006
+    4300018: 12SidedLow.005
+    4300020: 12SidedLow.004
+    4300022: 12SidedLow.003
+    4300024: 12SidedLow.002
+    4300026: side11
+    4300028: side10
+    4300030: side9
+    4300032: side7
+    4300034: side12
+    4300036: side8
+    4300038: side2
+    4300040: side3
+    4300042: side4
+    4300044: side5
+    4300046: side6
+    4300048: side1
+    2186277476908879412: ImportLogs
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

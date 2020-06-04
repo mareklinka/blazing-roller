@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Client\BlazingRoller.Client.csproj" />
     <ProjectReference Include="..\Shared\BlazingRoller.Shared.csproj" />
+    <ProjectReference Include="..\Data\BlazingRoller.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
