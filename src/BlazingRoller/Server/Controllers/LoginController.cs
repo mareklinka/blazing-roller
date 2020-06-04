@@ -26,56 +26,62 @@ namespace BlazingRoller.Server.Controllers
 
             if (existingRoom is null)
             {
-                var salt = new byte[16];
-                RandomNumberGenerator.Fill(salt);
+                existingRoom = new Room { Name = model.RoomName };
+                ConfigureRoom(existingRoom, model.RoomPassword);
 
-                var key = KeyDerivation.Pbkdf2(model.RoomPassword,
-                                               salt,
-                                               KeyDerivationPrf.HMACSHA256,
-                                               Constants.PasswordIterations,
-                                               Constants.KeyLength);
-
-                var room = new Room
-                {
-                    Name = model.RoomName,
-                    RoomId = Guid.NewGuid(),
-                    RoomKey = Guid.NewGuid(),
-                    DerivationCycles = Constants.PasswordIterations,
-                    LastAction = DateTime.Now,
-                    PasswordHash = key,
-                    PasswordSalt = salt
-                };
-
-                response.RoomId = room.RoomId;
-                response.RoomKey = room.RoomKey;
-
-                db.Rooms.Add(room);
-
-                await db.SaveChangesAsync(cancellationToken);
+                db.Rooms.Add(existingRoom);
             }
             else
             {
-                var key = KeyDerivation.Pbkdf2(model.RoomPassword,
+                if (existingRoom.LastAction.AddHours(12) < DateTime.Now)
+                {
+                    // room has been inactive for more than 12 hours - allow reuse
+                    ConfigureRoom(existingRoom, model.RoomPassword);
+                }
+                else
+                {
+                    // active room - password must match
+                    var key = KeyDerivation.Pbkdf2(model.RoomPassword,
                                                existingRoom.PasswordSalt,
                                                KeyDerivationPrf.HMACSHA256,
                                                Constants.PasswordIterations,
                                                Constants.KeyLength);
 
-                if (!key.SequenceEqual(existingRoom.PasswordHash))
-                {
-                    return Unauthorized();
+                    if (!key.SequenceEqual(existingRoom.PasswordHash))
+                    {
+                        return Unauthorized();
+                    }
                 }
-
-                response.RoomId = existingRoom.RoomId;
-                response.RoomKey = existingRoom.RoomKey;
-
-                existingRoom.LastAction = DateTime.Now;
-                await db.SaveChangesAsync(cancellationToken);
             }
 
+            existingRoom.LastAction = DateTime.Now;
+
+            await db.SaveChangesAsync(cancellationToken);
             await t.CommitAsync(cancellationToken);
 
+            response.RoomId = existingRoom.RoomId;
+            response.RoomKey = existingRoom.RoomKey;
+
             return Ok(response);
+        }
+
+        private void ConfigureRoom(Room room, string password)
+        {
+            var salt = new byte[16];
+            RandomNumberGenerator.Fill(salt);
+
+            var key = KeyDerivation.Pbkdf2(password,
+                                           salt,
+                                           KeyDerivationPrf.HMACSHA256,
+                                           Constants.PasswordIterations,
+                                           Constants.KeyLength);
+
+            room.RoomId = Guid.NewGuid();
+            room.RoomKey = Guid.NewGuid();
+            room.DerivationCycles = Constants.PasswordIterations;
+            room.LastAction = DateTime.Now;
+            room.PasswordHash = key;
+            room.PasswordSalt = salt;
         }
     }
 }
