@@ -1,9 +1,11 @@
 using System.Linq;
+using BlazingRoller.Data;
 using BlazingRoller.Server.Hubs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,6 +29,8 @@ namespace BlazingRoller.Server
             services.AddControllersWithViews();
             services.AddRazorPages();
             services.AddResponseCompression(opts => opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
+
+            services.AddDbContext<DataContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), o => o.MigrationsAssembly("BlazingRoller.Data")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

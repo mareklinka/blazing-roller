@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build-server",
+            "label": "build",
             "command": "dotnet",
             "type": "process",
             "args": [
@@ -38,6 +38,31 @@
                 "showReuseMessage": true,
                 "clear": true
             }
+        },
+        {
+            "label": "add-migration",
+            "command": "dotnet",
+            "group": "none",
+            "type": "process",
+            "args": [
+                "ef",
+                "migrations",
+                "add",
+                "${input:migration-name}",
+                "-s",
+                "../Server"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/src/BlazingRoller/Data"
+            },
+            "problemMatcher": "$msCompile"
         }
-    ]
+    ],
+    "inputs": [
+        {
+          "id": "migration-name",
+          "type": "promptString",
+          "description": "The name of the database migration to scaffold"
+        }
+      ]
 }

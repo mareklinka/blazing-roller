@@ -10,7 +10,7 @@ namespace BlazingRoller.Shared
         public string UserName { get; set; }
 
         [Required]
-        [StringLength(120)]
+        [StringLength(100)]
         public string RoomName { get; set; }
 
         [Required]
