@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using System.Runtime.InteropServices;
+using BlazingRoller.Unity;
 
 public class DiceManagerScript : MonoBehaviour
 {
     private int _frameCounter;
     private Vector3 _diceStartPosition = new Vector3(0,-15, 0);
     private Quaternion _diceStartOrientation = new Quaternion(0,0, 0, 1);
-    private BlazingRoller.Unity.DiceThrowConfiguration _throwConfiguration;
-    private bool _resultSent = false;
+    private DiceThrowConfiguration _throwConfiguration;
+    private bool _resultSent;
 
     [DllImport("__Internal")]
-    private static extern void PropagateValue(string id, int value);
+    private static extern void PropagateValue(string id, int value, string config);
 
     public GameObject prefabD4;
     public GameObject prefabD6;
@@ -33,7 +34,7 @@ public class DiceManagerScript : MonoBehaviour
 #endif
 
 #if UNITY_EDITOR
-        NewThrow("{\"RandomSeed\":509848614,\"Offset\":3,\"Dice\":[{\"Id\":0,\"Sides\":6,\"Multiplier\":-1},{\"Id\":1,\"Sides\":10,\"Multiplier\":1}]}");
+        NewThrow("{\"ThrowId\":\"113d70d1-0457-472f-8603-aa1c90da132b\",\"ReturnFinalConfiguration\":true,\"RandomSeed\":1610762363,\"Offset\":0,\"Dice\":[{\"Id\":0,\"Sides\":20,\"Multiplier\":1}]}");
 #endif
     }
 
@@ -80,7 +81,7 @@ public class DiceManagerScript : MonoBehaviour
                 continue;
             }
 
-            SetupDie(die, c.Multiplier);
+            SetupDie(die, c.Multiplier, c.Id);
 
             dice.Add(die);
         }
@@ -93,6 +94,28 @@ public class DiceManagerScript : MonoBehaviour
             var script = die.GetComponent<DieScript>();
             script.RandomStart(dieSeed);
         }
+
+        Physics.autoSimulation = true;
+    }
+
+    public void RepositionDice(string configString)
+    {
+        if (_throwConfiguration == null)
+        {
+            return;
+        }
+
+        var configuration = JsonUtility.FromJson<DieFinalConfigurationWrapper>(configString).Configuration.ToDictionary(_ => _.Id);
+
+        Physics.autoSimulation = false;
+        var dice = GameObject.FindGameObjectsWithTag("Dice");
+        foreach (var die in dice)
+        {
+            var script = die.GetComponent<DieScript>();
+            script.RepositionTo(configuration[script.GetId()]);
+        }
+
+        _resultSent = false; // a new result will need to be send
     }
 
     private void ToggleUI(bool showUi)
@@ -135,11 +158,13 @@ public class DiceManagerScript : MonoBehaviour
         }
     }
 
-    private void SetupDie(GameObject die, int valueMultiplier)
+    private void SetupDie(GameObject die, int valueMultiplier, int id)
     {
         die.tag = "Dice";
         die.AddComponent<DieScript>();
-        die.GetComponent<DieScript>().SetMultiplier(valueMultiplier);
+        DieScript dieScript = die.GetComponent<DieScript>();
+        dieScript.SetMultiplier(valueMultiplier);
+        dieScript.SetId(id);
     }
 
     private void RenderResultsUi()
@@ -155,10 +180,27 @@ public class DiceManagerScript : MonoBehaviour
         {
             return;
         }
+        else
+        {
+            Physics.autoSimulation = false;
+        }
 
-        var values = GetDiceValues(dice);
+        (var values, var positions) = GetDiceValues(dice);
+        int total = values.Sum() + _throwConfiguration.Offset;
 
-        var resultText = GetResultText(values);
+        var resultText = GetResultText(values, total);
+
+        if (!_resultSent)
+        {
+#if !UNITY_EDITOR
+            var serializedConfig = _throwConfiguration.ReturnFinalConfiguration
+                ? JsonUtility.ToJson(new DieFinalConfigurationWrapper { Configuration = positions })
+                : string.Empty;
+            Debug.Log(serializedConfig);
+            PropagateValue(_throwConfiguration.ThrowId, total, serializedConfig);
+#endif
+            _resultSent = true;
+        }
 
         ToggleUI(true);
 
@@ -169,17 +211,18 @@ public class DiceManagerScript : MonoBehaviour
     private bool IsSystemStable(GameObject[] dice)
     {
         var isStopped = true;
+        const float threshold = 0.1F;
 
         foreach (var die in dice)
         {
             var body = die.GetComponent<Rigidbody>();
-            if (body.velocity.sqrMagnitude > 0.5)
+            if (body.velocity.sqrMagnitude > threshold)
             {
                 isStopped = false;
                 break;
             }
 
-            if (body.angularVelocity.sqrMagnitude > 0.5)
+            if (body.angularVelocity.sqrMagnitude > threshold)
             {
                 isStopped = false;
                 break;
@@ -189,20 +232,41 @@ public class DiceManagerScript : MonoBehaviour
         return isStopped;
     }
 
-    private int[] GetDiceValues(GameObject[] dice)
+    private (int[] Values, DieFinalConfiguration[] Positions) GetDiceValues(GameObject[] dice)
     {
         var values = new int[dice.Length];
+        var finalPositions = new DieFinalConfiguration[dice.Length];
 
         var i = 0;
         foreach (var die in dice)
         {
-            values[i++] = die.GetComponent<DieScript>().GetValue();
+            var dieScript = die.GetComponent<DieScript>();
+            values[i] = dieScript.GetValue();
+
+            if (_throwConfiguration.ReturnFinalConfiguration)
+            {
+                var dfc = new DieFinalConfiguration
+                {
+                    Id = dieScript.GetId(),
+                    X = die.transform.position.x,
+                    Y = die.transform.position.y,
+                    Z = die.transform.position.z,
+                    RX = die.transform.rotation.x,
+                    RY = die.transform.rotation.y,
+                    RZ = die.transform.rotation.z,
+                    RW = die.transform.rotation.w
+                };
+
+                finalPositions[i] = dfc;
+            }
+
+            ++i;
         }
 
-        return values;
+        return (values, finalPositions);
     }
 
-    private string GetResultText(int[] values)
+    private string GetResultText(int[] values, int total)
     {
         var sb = new StringBuilder();
 
@@ -238,14 +302,6 @@ public class DiceManagerScript : MonoBehaviour
         {
             sb.Append(" - ");
             sb.Append(-_throwConfiguration.Offset);
-        }
-
-        int total = values.Sum() + _throwConfiguration.Offset;
-
-        if (!_resultSent)
-        {
-            PropagateValue(_throwConfiguration.ThrowId, total);
-            _resultSent = true;
         }
 
         sb.Append(" = ");

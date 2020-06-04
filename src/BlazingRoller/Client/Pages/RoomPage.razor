@@ -63,15 +63,13 @@
     [Parameter]
     public Guid RoomId { get; set; }
 
-    private static Action<string, int> deliverThrowValueAction;
+    private static Func<string, int, string, Task> deliverThrowValueAction;
 
     private ElementReference logContainer;
-
     private string diceExpression;
-
     private HubConnection hubConnection;
-
     private List<DiceThrowLogModel> throwLogs = new List<DiceThrowLogModel>();
+    private Guid? currentThrowId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,6 +87,7 @@
             .Build();
 
         hubConnection.On<string, DiceThrowConfiguration>("ReceiveRoll", ReceiveRoll);
+        hubConnection.On<Guid, DieFinalConfigurationWrapper>("ReceiveDicePositions", ReceiveDicePositions);
 
         await hubConnection.StartAsync();
         await hubConnection.SendAsync("JoinRoom");
@@ -102,9 +101,9 @@
     }
 
     [JSInvokable]
-    public static void ReceiveThrowValueProxy(string id, int value)
+    public static void ReceiveThrowValueProxy(string id, int value, string config)
     {
-        deliverThrowValueAction.Invoke(id, value);
+        deliverThrowValueAction.Invoke(id, value, config);
     }
 
     private async Task RollCore(string expression)
@@ -123,6 +122,7 @@
                 RandomSeed = seed,
                 Offset = diceConfig.Constants.DefaultIfEmpty(0).Sum(),
                 ThrowId = Guid.NewGuid(),
+                ReturnFinalConfiguration = true,
                 Dice = diceConfig.Dice.Select(_ =>
                     new DieThrowConfiguration
                     {
@@ -131,6 +131,7 @@
                         Multiplier = _.Multiplicity
                     }).ToList()
             };
+        currentThrowId = config.ThrowId;
 
         throwLogs.Add(new DiceThrowLogModel { Id = config.ThrowId, Name = Storage.User, Text = config.ToString() });
         await JSRuntime.InvokeVoidAsync("ElementInterop.scrollToEnd", logContainer);
@@ -145,9 +146,24 @@
     {
         throwLogs.Add(new DiceThrowLogModel { Id = config.ThrowId,  Name = username, Text = config.ToString() });
 
+        currentThrowId = config.ThrowId;
+        config.ReturnFinalConfiguration = false;
         await InvokeUnityRoll(config);
         StateHasChanged();
         await JSRuntime.InvokeVoidAsync("ElementInterop.scrollToEnd", logContainer);
+    }
+
+    private async Task ReceiveDicePositions(Guid throwId, DieFinalConfigurationWrapper config)
+    {
+        if (currentThrowId != throwId)
+        {
+            return;
+        }
+
+        Console.WriteLine("Repositioning dice");
+
+        var json = JsonSerializer.Serialize(config);
+        await JSRuntime.InvokeVoidAsync("engine.repositionDice", json);
     }
 
     private async Task InvokeUnityRoll(DiceThrowConfiguration config)
@@ -176,7 +192,7 @@
         }
     }
 
-    private void ReceiveThrowValue(string id, int value)
+    private async Task ReceiveThrowValue(string id, int value, string config)
     {
         var guid = Guid.Parse(id);
         var log = throwLogs.SingleOrDefault(_ => _.Id == guid);
@@ -184,6 +200,11 @@
         if (log is {})
         {
             log.Result = value;
+        }
+
+        if (!string.IsNullOrEmpty(config))
+        {
+            await hubConnection.SendAsync("RepositionDice", guid, JsonSerializer.Deserialize<DieFinalConfigurationWrapper>(config));
         }
 
         StateHasChanged();

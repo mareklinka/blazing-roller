@@ -7,6 +7,8 @@ namespace BlazingRoller.Unity
     {
         public string ThrowId;
 
+        public bool ReturnFinalConfiguration;
+
         public int RandomSeed;
 
         public int Offset;

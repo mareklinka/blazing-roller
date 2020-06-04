@@ -27,6 +27,23 @@ namespace BlazingRoller.Server.Hubs
             var roomId = Guid.Parse(Context.GetHttpContext().Request.Query["roomId"].ToString());
             var roomKey = Context.GetHttpContext().Request.Query["roomKey"].ToString();
 
+            await UpdateRoomActiveDate(roomId);
+
+            await Clients.OthersInGroup(roomKey).ReceiveRoll(username, config);
+        }
+
+        public async Task RepositionDice(Guid throwId, DieFinalConfigurationWrapper config)
+        {
+            var roomId = Guid.Parse(Context.GetHttpContext().Request.Query["roomId"].ToString());
+            var roomKey = Context.GetHttpContext().Request.Query["roomKey"].ToString();
+
+            await UpdateRoomActiveDate(roomId);
+
+            await Clients.OthersInGroup(roomKey).ReceiveDicePositions(throwId, config);
+        }
+
+        private async Task UpdateRoomActiveDate(Guid roomId)
+        {
             await using var transaction = await _db.Database.BeginTransactionAsync();
 
             var room = await _db.Rooms.SingleOrDefaultAsync(_ => _.RoomId == roomId);
@@ -40,8 +57,6 @@ namespace BlazingRoller.Server.Hubs
 
             await _db.SaveChangesAsync();
             await transaction.CommitAsync();
-
-            await Clients.OthersInGroup(roomKey).ReceiveRoll(username, config);
         }
     }
 }

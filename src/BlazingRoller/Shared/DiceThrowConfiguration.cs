@@ -9,6 +9,8 @@ namespace BlazingRoller.Shared
     {
         public Guid ThrowId { get; set; }
 
+        public bool ReturnFinalConfiguration { get; set; }
+
         public int RandomSeed { get; set; }
 
         public int Offset { get; set; }
