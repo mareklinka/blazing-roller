@@ -1,5 +1,5 @@
 trigger:
-    - master
+  - master
 
 pool:
   vmImage: 'windows-2019'
@@ -9,6 +9,7 @@ steps:
   inputs:
     command: 'ci'
     workingDir: 'src\BlazingRoller\Client\jslib'
+
 - task: Npm@1
   inputs:
     command: 'custom'
@@ -40,13 +41,26 @@ steps:
     zipAfterPublish: false
     modifyOutputPath: false
 
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '.\publish'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '.\publish\artifact.zip'
+    replaceExistingArchive: true
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '.\publish\artifact.zip'
+    ArtifactName: 'artifact'
+    publishLocation: 'Container'
+
 - task: AzureRmWebAppDeployment@4
   inputs:
     ConnectionType: 'AzureRM'
     azureSubscription: 'Personal ERNI Subscription'
     appType: 'webApp'
     WebAppName: 'blazing-roller'
-    packageForLinux: '.\publish'
+    packageForLinux: '.\publish\artifact.zip'
     enableCustomDeployment: true
-    DeploymentType: 'webDeploy'
-    RemoveAdditionalFilesFlag: true
+    DeploymentType: 'zipDeploy'
