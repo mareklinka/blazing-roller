@@ -86,6 +86,11 @@ public class DieScript : MonoBehaviour
         _sourceRotation = transform.rotation;
     }
 
+    public bool IsRepositioning()
+    {
+        return _targetPosition != null;
+    }
+
     private float Randomize(float origin, float range, System.Random random)
     {
         return (float)(origin + range * random.NextDouble());

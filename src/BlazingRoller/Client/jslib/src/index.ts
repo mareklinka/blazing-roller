@@ -1,7 +1,7 @@
 export class DiceEngine {
     private unityInstance: any;
     initialize(): void {
-        this.unityInstance = (window["UnityLoader"] as any).instantiate("unityContainer", "Build/wwwroot.json", {onProgress: window["UnityProgress"]});
+        this.unityInstance = (window["UnityLoader"] as any).instantiate("unityContainer", "Build/Baked.json", {onProgress: window["UnityProgress"]});
     }
 
     rollDice(seed: number): void {

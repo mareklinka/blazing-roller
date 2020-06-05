@@ -356,6 +356,6 @@ src/BlazingRoller/Client/wwwroot/js/*.js
 src/BlazingRoller/Server/wwwroot/Build/*
 src/BlazingRoller/Server/wwwroot/TemplateData/*
 
-
 src/BlazingRoller/Unity/Assets/ThirdParty/
 src/BlazingRoller/Unity/Assets/ThirdParty/Dice.meta
+src/Unity/Baked/index.html

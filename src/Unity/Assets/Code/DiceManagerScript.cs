@@ -216,6 +216,14 @@ public class DiceManagerScript : MonoBehaviour
         foreach (var die in dice)
         {
             var body = die.GetComponent<Rigidbody>();
+            var dieScript = die.GetComponent<DieScript>();
+
+            if (dieScript.IsRepositioning())
+            {
+                isStopped = false;
+                break;
+            }
+
             if (body.velocity.sqrMagnitude > threshold)
             {
                 isStopped = false;
