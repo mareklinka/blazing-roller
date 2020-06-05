@@ -1,5 +1,5 @@
 trigger:
-  - release
+  - master
 
 pool:
   vmImage: 'windows-2019'
@@ -39,37 +39,8 @@ steps:
     feedsToUse: 'select'
 
 - task: DotNetCoreCLI@2
-  displayName: 'Publish application'
+  displayName: 'Build application'
   inputs:
-    command: 'publish'
+    command: 'build'
     projects: 'src\BlazingRoller\Server\BlazingRoller.Server.csproj'
-    arguments: '-c Release -r win-x64 -o .\publish'
-    zipAfterPublish: false
-    modifyOutputPath: false
-
-- task: ArchiveFiles@2
-  displayName: 'Archive artifact'
-  inputs:
-    rootFolderOrFile: '.\publish'
-    includeRootFolder: false
-    archiveType: 'zip'
-    archiveFile: '.\publish\artifact.zip'
-    replaceExistingArchive: true
-
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish artifact'
-  inputs:
-    PathtoPublish: '.\publish\artifact.zip'
-    ArtifactName: 'artifact'
-    publishLocation: 'Container'
-
-- task: AzureRmWebAppDeployment@4
-  displayName: 'Deploy to Azure'
-  inputs:
-    ConnectionType: 'AzureRM'
-    azureSubscription: 'Personal ERNI Subscription'
-    appType: 'webApp'
-    WebAppName: 'blazing-roller'
-    packageForLinux: '.\publish\artifact.zip'
-    enableCustomDeployment: true
-    DeploymentType: 'zipDeploy'
+    arguments: '-c Release -r win-x64'
