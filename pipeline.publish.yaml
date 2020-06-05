@@ -6,34 +6,40 @@ pool:
 
 steps:
 - task: Npm@1
+  displayName: 'npm install'
   inputs:
     command: 'ci'
     workingDir: 'src\BlazingRoller\Client\jslib'
 
 - task: Npm@1
+  displayName: 'npm build'
   inputs:
     command: 'custom'
     workingDir: 'src\BlazingRoller\Client\jslib'
     customCommand: 'run build-prod'
 
 - task: PowerShell@2
+  displayName: 'Copy Unity artifacts to wwwroot'
   inputs:
     targetType: 'inline'
     script: 'Copy-Item "src\Unity\Baked\*" -Destination "src\BlazingRoller\Server\wwwroot" -recurse'
     failOnStderr: true
 
 - task: UseDotNet@2
+  displayName: 'Use .NET Core 3.x SDK'
   inputs:
     packageType: 'sdk'
     version: '3.x'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Restore nuget packages'
   inputs:
     command: 'restore'
-    projects: '**\*.csproj'
+    projects: 'src\BlazingRoller\Server\BlazingRoller.Server.csproj'
     feedsToUse: 'select'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Publish application'
   inputs:
     command: 'publish'
     projects: 'src\BlazingRoller\Server\BlazingRoller.Server.csproj'
@@ -42,6 +48,7 @@ steps:
     modifyOutputPath: false
 
 - task: ArchiveFiles@2
+  displayName: 'Archive artifact'
   inputs:
     rootFolderOrFile: '.\publish'
     includeRootFolder: false
@@ -50,12 +57,14 @@ steps:
     replaceExistingArchive: true
 
 - task: PublishBuildArtifacts@1
+  displayName: 'Publish artifact'
   inputs:
     PathtoPublish: '.\publish\artifact.zip'
     ArtifactName: 'artifact'
     publishLocation: 'Container'
 
 - task: AzureRmWebAppDeployment@4
+  displayName: 'Deploy to Azure'
   inputs:
     ConnectionType: 'AzureRM'
     azureSubscription: 'Personal ERNI Subscription'

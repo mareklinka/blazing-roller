@@ -26,4 +26,8 @@
     <Content Remove="wwwroot\readme.md" />
   </ItemGroup>
 
+  <Target Name="CopyWebConfigOnPublish" AfterTargets="Publish">
+    <Copy SourceFiles="web.config" DestinationFolder="$(PublishDir)" />
+  </Target>
+
 </Project>
