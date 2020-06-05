@@ -1,0 +1,52 @@
+trigger:
+    - master
+
+pool:
+  vmImage: 'windows-2019'
+
+steps:
+- task: Npm@1
+  inputs:
+    command: 'ci'
+    workingDir: 'src\BlazingRoller\Client\jslib'
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    workingDir: 'src\BlazingRoller\Client\jslib'
+    customCommand: 'run build-prod'
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: 'Copy-Item "src\Unity\Baked\*" -Destination "src\BlazingRoller\Server\wwwroot" -recurse'
+    failOnStderr: true
+
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '3.x'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: '**\*.csproj'
+    feedsToUse: 'select'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: 'src\BlazingRoller\Server\BlazingRoller.Server.csproj'
+    arguments: '-c Release -r win-x64 -o .\publish'
+    zipAfterPublish: false
+    modifyOutputPath: false
+
+- task: AzureRmWebAppDeployment@4
+  inputs:
+    ConnectionType: 'AzureRM'
+    azureSubscription: 'Personal ERNI Subscription'
+    appType: 'webApp'
+    WebAppName: 'blazing-roller'
+    packageForLinux: '.\publish'
+    enableCustomDeployment: true
+    DeploymentType: 'webDeploy'
+    RemoveAdditionalFilesFlag: true

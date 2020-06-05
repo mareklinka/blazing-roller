@@ -22,5 +22,8 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Remove="wwwroot\readme.md" />
+  </ItemGroup>
 
 </Project>
