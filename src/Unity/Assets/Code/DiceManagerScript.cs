@@ -8,8 +8,8 @@ using BlazingRoller.Unity;
 public class DiceManagerScript : MonoBehaviour
 {
     private int _frameCounter;
-    private Vector3 _diceStartPosition = new Vector3(0,-15, 0);
-    private Quaternion _diceStartOrientation = new Quaternion(0,0, 0, 1);
+    private Vector3 _diceStartPosition = new Vector3(0, -15, 0);
+    private Quaternion _diceStartOrientation = new Quaternion(0, 0, 0, 1);
     private DiceThrowConfiguration _throwConfiguration;
     private bool _resultSent;
 
@@ -53,14 +53,10 @@ public class DiceManagerScript : MonoBehaviour
 
     public void NewThrow(string serializedConfig)
     {
-        Debug.Log(serializedConfig);
-
         _resultSent = false;
         _throwConfiguration = JsonUtility.FromJson<BlazingRoller.Unity.DiceThrowConfiguration>(serializedConfig);
 
         var random = new System.Random(_throwConfiguration.RandomSeed);
-
-        Debug.Log($"Seed used for randomization: {_throwConfiguration.RandomSeed}");
 
         ToggleUI(false);
 
@@ -90,7 +86,6 @@ public class DiceManagerScript : MonoBehaviour
         foreach (var die in dice)
         {
             var dieSeed = random.Next();
-            Debug.Log($"Seed for die {i++}: {dieSeed}");
             var script = die.GetComponent<DieScript>();
             script.RandomStart(dieSeed);
         }
@@ -153,7 +148,6 @@ public class DiceManagerScript : MonoBehaviour
                 die.transform.localScale = new Vector3(2.2F, 2.2F, 2.2F);
                 return die;
             default:
-                Debug.Log($"Invalid die encountered: {sides}");
                 return null;
         }
     }
@@ -196,7 +190,6 @@ public class DiceManagerScript : MonoBehaviour
             var serializedConfig = _throwConfiguration.ReturnFinalConfiguration
                 ? JsonUtility.ToJson(new DieFinalConfigurationWrapper { Configuration = positions })
                 : string.Empty;
-            Debug.Log(serializedConfig);
             PropagateValue(_throwConfiguration.ThrowId, total, serializedConfig);
 #endif
             _resultSent = true;

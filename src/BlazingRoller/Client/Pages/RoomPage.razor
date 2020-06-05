@@ -136,8 +136,6 @@
         throwLogs.Add(new DiceThrowLogModel { Id = config.ThrowId, Name = Storage.User, Text = config.ToString() });
         await JSRuntime.InvokeVoidAsync("ElementInterop.scrollToEnd", logContainer);
 
-        Console.WriteLine($"Random seed passed to Unity: {seed}");
-
         await InvokeUnityRoll(config);
         await hubConnection.SendAsync("RollDice", Storage.User, config);
     }
@@ -159,8 +157,6 @@
         {
             return;
         }
-
-        Console.WriteLine("Repositioning dice");
 
         var json = JsonSerializer.Serialize(config);
         await JSRuntime.InvokeVoidAsync("engine.repositionDice", json);

@@ -151,10 +151,10 @@
 
             Navigator.NavigateTo($"/room/{roomInfo.RoomId}");
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException ex)
         {
             isError = true;
-            Console.WriteLine("errors and what not");
+            Console.WriteLine($"ERROR: {ex.Message}");
         }
     }
 
