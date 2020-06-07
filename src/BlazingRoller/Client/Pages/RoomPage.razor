@@ -49,7 +49,7 @@
                     {
                         <div class="dice-log">
                             <span class="dice-log-name">@(log.Name): </span>
-                            <span class="dice-log-text">@log.Text</span>
+                            <a href="#" @onclick:preventDefault class="dice-log-text" @onclick="() => RollCore(log.Text)">@log.Text</a>
                             @if (log.Result is {})
                             {
                                 <span class="dice-log-value"> = @log.Result</span>
