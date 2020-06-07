@@ -29,7 +29,7 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-dice-d20"></i></span>
                     </div>
-                    <input type="text" @bind="diceExpression" class="form-control" autocomplete="" @bind:event="oninput" @onkeypress="DiceInputKeyPressed"/>
+                    <input type="text" @bind="diceExpression" class="form-control" autocomplete="" @bind:event="oninput" @onkeyup="DiceInputKeyUp" @onkeypress="DiceInputKeyPressed"/>
                     <div class="input-group-append">
                         <button type="button" class="btn btn-primary" @onclick="Roll">Roll!</button>
                     </div>
@@ -71,7 +71,9 @@
     private ElementReference logContainer;
     private string diceExpression;
     private List<DiceThrowLogModel> throwLogs = new List<DiceThrowLogModel>();
+    private LinkedList<string> myThrows = new LinkedList<string>();
     private Guid? currentThrowId;
+    private int? historyPosition;
 
     protected override async Task OnInitializedAsync()
     {
@@ -114,6 +116,8 @@
             return;
         }
 
+        UpdateThrowHistory(expression);
+
         var seed = new Random().Next();
         var config =
             new DiceThrowConfiguration
@@ -138,6 +142,30 @@
 
         await JsInterop.SendRollToUnity(config);
         await RoomHub.RollDice(Storage.User, config);
+    }
+
+    private void UpdateThrowHistory(string expression)
+    {
+        historyPosition = null;
+
+        if (myThrows.Contains(expression))
+        {
+            if (myThrows.First.Value != expression)
+            {
+                myThrows.Remove(expression);
+                myThrows.AddFirst(expression);
+            }
+        }
+        else
+        {
+            if (myThrows.Count == 10)
+            {
+                // limit the items in history to 10
+                myThrows.RemoveLast();
+            }
+
+            myThrows.AddFirst(expression);
+        }
     }
 
     private async Task ReceiveRoll(string username, DiceThrowConfiguration config)
@@ -209,6 +237,41 @@
         }
     }
 
+    private void DiceInputKeyUp(KeyboardEventArgs e)
+    {
+        if (myThrows.Count == 0)
+        {
+            return;
+        }
+
+        if (string.Equals("arrowup", e.Code, StringComparison.OrdinalIgnoreCase))
+        {
+            if (historyPosition is null)
+            {
+                historyPosition = 0;
+            }
+            else
+            {
+                historyPosition = (historyPosition + 1) % myThrows.Count;
+            }
+
+            diceExpression = myThrows.ElementAt(historyPosition.Value);
+        }
+
+        if (string.Equals("arrowdown", e.Code, StringComparison.OrdinalIgnoreCase))
+        {
+            if (historyPosition is null)
+            {
+                historyPosition = myThrows.Count - 1;
+            }
+            else
+            {
+                historyPosition = (historyPosition - 1) % myThrows.Count + (historyPosition == 0 ? myThrows.Count : 0);
+            }
+
+            diceExpression = myThrows.ElementAt(historyPosition.Value);
+        }
+    }
 
     private void LeaveRoom()
     {
