@@ -121,7 +121,7 @@
         catch (HttpRequestException ex)
         {
             isError = true;
-            Logger.LogError(ex, "Getting a room name from the server failed");
+            Logger.LogError("Getting a room name from the server failed");
         }
     }
 
@@ -154,7 +154,7 @@
         catch (HttpRequestException ex)
         {
             isError = true;
-            Console.WriteLine($"ERROR: {ex.Message}");
+            Logger.LogError($"{ex.Message}");
         }
     }
 

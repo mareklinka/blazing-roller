@@ -30,7 +30,7 @@ public class DieScript : MonoBehaviour
         var frameDifference = Time.frameCount - _targetConfigurationStartTime.Value;
         var t = frameDifference / repositionDuration;
         transform.position = Vector3.Lerp(_sourcePosition.Value, _targetPosition.Value, t);
-        transform.rotation = Quaternion.Lerp(_sourceRotation.Value, _targetRotation.Value, t);
+        transform.rotation = Quaternion.Slerp(_sourceRotation.Value, _targetRotation.Value, t);
 
         if (frameDifference == 30)
         {
@@ -53,7 +53,7 @@ public class DieScript : MonoBehaviour
 
         transform.position = new Vector3(Randomize(-2.5F, 5, r), Randomize(10, 5, r), Randomize(-2.5F, 5, r));
 
-        _rb.velocity = new Vector3(Randomize(-40, 80, r), Randomize(8, 6, r), Randomize(-40, 80, r));
+        _rb.velocity = new Vector3(Randomize(-80, 160, r), Randomize(10, 10, r), Randomize(-80, 160, r));
         _rb.angularVelocity = new Vector3(Randomize(-10, 20, r), Randomize(-10, 20, r), Randomize(-10, 20, r));
     }
 

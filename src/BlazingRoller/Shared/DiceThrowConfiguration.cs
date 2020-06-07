@@ -9,6 +9,8 @@ namespace BlazingRoller.Shared
     {
         public Guid ThrowId { get; set; }
 
+        public int DiceSet { get; set; }
+
         public bool ReturnFinalConfiguration { get; set; }
 
         public int RandomSeed { get; set; }
@@ -28,7 +30,7 @@ namespace BlazingRoller.Shared
 
             var sb = new StringBuilder();
 
-            for (int i = 0; i < groups.Count; i++)
+            for (var i = 0; i < groups.Count; i++)
             {
                 var group = groups[i];
 

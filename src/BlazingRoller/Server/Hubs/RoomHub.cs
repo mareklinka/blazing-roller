@@ -7,25 +7,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlazingRoller.Server.Hubs
 {
-    public class RoomHub : Hub<IRoomClient>
+    public class RoomHub : Hub<IRoomClient>, IRoomHub
     {
         private readonly DataContext _db;
 
-        public RoomHub(DataContext db)
-        {
-            _db = db;
-        }
+        public RoomHub(DataContext db) => _db = db;
 
         public Task JoinRoom()
         {
-            var roomKey = Context.GetHttpContext().Request.Query["roomKey"].ToString();
+            var roomKey = GetRoomKey();
             return Groups.AddToGroupAsync(Context.ConnectionId, roomKey);
         }
 
         public async Task RollDice(string username, DiceThrowConfiguration config)
         {
-            var roomId = Guid.Parse(Context.GetHttpContext().Request.Query["roomId"].ToString());
-            var roomKey = Context.GetHttpContext().Request.Query["roomKey"].ToString();
+            var roomId = GetRoomId();
+            var roomKey = GetRoomKey();
 
             await UpdateRoomActiveDate(roomId);
 
@@ -34,13 +31,16 @@ namespace BlazingRoller.Server.Hubs
 
         public async Task RepositionDice(Guid throwId, DieFinalConfigurationWrapper config)
         {
-            var roomId = Guid.Parse(Context.GetHttpContext().Request.Query["roomId"].ToString());
-            var roomKey = Context.GetHttpContext().Request.Query["roomKey"].ToString();
+            var roomId = GetRoomId();
+            var roomKey = GetRoomKey();
 
             await UpdateRoomActiveDate(roomId);
 
             await Clients.OthersInGroup(roomKey).ReceiveDicePositions(throwId, config);
         }
+
+        private Guid GetRoomId() => Guid.Parse(Context.GetHttpContext().Request.Query["roomId"].ToString());
+        private string GetRoomKey() => Context.GetHttpContext().Request.Query["roomKey"].ToString();
 
         private async Task UpdateRoomActiveDate(Guid roomId)
         {

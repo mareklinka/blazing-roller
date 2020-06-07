@@ -1,13 +1,16 @@
 ﻿@page "/room/{RoomId:guid}"
 
-@using Microsoft.AspNetCore.SignalR.Client
 @using System.Text.Json
 @using System.IO
 @using BlazingRoller.Client.Models
+@using Microsoft.Extensions.Logging
 
 @inject NavigationManager Navigator
 @inject SessionStorageService Storage
-@inject IJSRuntime JSRuntime
+@inject ILogger<RoomPage> Logger
+@inject JsInteropService JsInterop
+@inject RoomHubConnection RoomHub
+@inject IModalService ModalService
 
 @implements IDisposable
 
@@ -26,15 +29,18 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-dice-d20"></i></span>
                     </div>
-                    <input type="text" @bind="diceExpression" class="form-control" autocomplete="" @onkeypress="DiceInputKeyPressed"/>
+                    <input type="text" @bind="diceExpression" class="form-control" autocomplete="" @bind:event="oninput" @onkeyup="DiceInputKeyUp" @onkeypress="DiceInputKeyPressed"/>
                     <div class="input-group-append">
                         <button type="button" class="btn btn-primary" @onclick="Roll">Roll!</button>
+                        <button type="button" class="btn btn-outline-warning" @onclick="SelectDiceModel"><i class="fas fa-cogs"></i></button>
                     </div>
                 </div>
             </div>
             <div class="col-auto">
-                <button type="button" class="btn btn-success" @onclick='() => RollCore("1D20")'><i class="fas fa-dice-d20"></i></button>
-                <button type="button" class="btn btn-success" @onclick='() => RollCore("2D20")'>2x <i class="fas fa-dice-d20"></i></button>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-success" @onclick='() => RollCore("1D20")'><i class="fas fa-dice-d20"></i></button>
+                    <button type="button" class="btn btn-outline-success" @onclick='() => RollCore("2D20")'>2x <i class="fas fa-dice-d20"></i></button>
+                </div>
             </div>
         </div>
 
@@ -46,7 +52,7 @@
                     {
                         <div class="dice-log">
                             <span class="dice-log-name">@(log.Name): </span>
-                            <span class="dice-log-text">@log.Text</span>
+                            <a href="#" @onclick:preventDefault class="dice-log-text" @onclick="() => RollCore(log.Text)">@log.Text</a>
                             @if (log.Result is {})
                             {
                                 <span class="dice-log-value"> = @log.Result</span>
@@ -63,13 +69,15 @@
     [Parameter]
     public Guid RoomId { get; set; }
 
-    private static Func<string, int, string, Task> deliverThrowValueAction;
+    private static Func<string, int, string, Task> receiveFinalThrowconfiguration;
 
     private ElementReference logContainer;
     private string diceExpression;
-    private HubConnection hubConnection;
     private List<DiceThrowLogModel> throwLogs = new List<DiceThrowLogModel>();
+    private LinkedList<string> myThrows = new LinkedList<string>();
     private Guid? currentThrowId;
+    private int? historyPosition;
+    private int currentDiceSet;
 
     protected override async Task OnInitializedAsync()
     {
@@ -79,20 +87,17 @@
             return;
         }
 
-        deliverThrowValueAction = ReceiveThrowValue;
+        receiveFinalThrowconfiguration = ReceiveFinalThrowconfiguration;
 
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigator.ToAbsoluteUri($"/roomHub?roomKey={Storage.RoomKey}&roomId={RoomId}"))
-            .WithAutomaticReconnect()
-            .Build();
+        RoomHub.BuildConnection(RoomId.ToString(), Storage.RoomKey.ToString());
 
-        hubConnection.On<string, DiceThrowConfiguration>("ReceiveRoll", ReceiveRoll);
-        hubConnection.On<Guid, DieFinalConfigurationWrapper>("ReceiveDicePositions", ReceiveDicePositions);
+        RoomHub.OnReceiveRoll(ReceiveRoll);
+        RoomHub.OnReceiveDicePositions(ReceiveDicePositions);
 
-        await hubConnection.StartAsync();
-        await hubConnection.SendAsync("JoinRoom");
+        await RoomHub.Connect();
+        await RoomHub.JoinRoom();
 
-        await JSRuntime.InvokeVoidAsync("BlazingRollerLib.init", "diceCanvas");
+        await JsInterop.InitializeWebGl("diceCanvas");
     }
 
     public async Task Roll()
@@ -103,17 +108,19 @@
     [JSInvokable]
     public static void ReceiveThrowValueProxy(string id, int value, string config)
     {
-        deliverThrowValueAction.Invoke(id, value, config);
+        receiveFinalThrowconfiguration.Invoke(id, value, config);
     }
 
     private async Task RollCore(string expression)
     {
         var diceConfig = ParseInput(expression);
 
-        if (diceConfig == null)
+        if (diceConfig == null || diceConfig.Dice.Count() > 15)
         {
             return;
         }
+
+        UpdateThrowHistory(expression);
 
         var seed = new Random().Next();
         var config =
@@ -122,6 +129,7 @@
                 RandomSeed = seed,
                 Offset = diceConfig.Constants.DefaultIfEmpty(0).Sum(),
                 ThrowId = Guid.NewGuid(),
+                DiceSet = currentDiceSet,
                 ReturnFinalConfiguration = true,
                 Dice = diceConfig.Dice.Select(_ =>
                     new DieThrowConfiguration
@@ -131,24 +139,56 @@
                         Multiplier = _.Multiplicity
                     }).ToList()
             };
+
         currentThrowId = config.ThrowId;
 
         throwLogs.Add(new DiceThrowLogModel { Id = config.ThrowId, Name = Storage.User, Text = config.ToString() });
-        await JSRuntime.InvokeVoidAsync("ElementInterop.scrollToEnd", logContainer);
+        await JsInterop.ScrollElementToEnd(logContainer);
 
-        await InvokeUnityRoll(config);
-        await hubConnection.SendAsync("RollDice", Storage.User, config);
+        await JsInterop.SendRollToUnity(config);
+        await RoomHub.RollDice(Storage.User, config);
+    }
+
+    private void UpdateThrowHistory(string expression)
+    {
+        historyPosition = null;
+
+        if (myThrows.Contains(expression))
+        {
+            if (myThrows.First.Value != expression)
+            {
+                myThrows.Remove(expression);
+                myThrows.AddFirst(expression);
+            }
+        }
+        else
+        {
+            if (myThrows.Count == 10)
+            {
+                // limit the items in history to 10
+                myThrows.RemoveLast();
+            }
+
+            myThrows.AddFirst(expression);
+        }
     }
 
     private async Task ReceiveRoll(string username, DiceThrowConfiguration config)
     {
+        if (config.Dice.Count > 15)
+        {
+            return;
+        }
+
         throwLogs.Add(new DiceThrowLogModel { Id = config.ThrowId,  Name = username, Text = config.ToString() });
 
         currentThrowId = config.ThrowId;
         config.ReturnFinalConfiguration = false;
-        await InvokeUnityRoll(config);
+        await JsInterop.SendRollToUnity(config);
+
         StateHasChanged();
-        await JSRuntime.InvokeVoidAsync("ElementInterop.scrollToEnd", logContainer);
+
+        await JsInterop.ScrollElementToEnd(logContainer);
     }
 
     private async Task ReceiveDicePositions(Guid throwId, DieFinalConfigurationWrapper config)
@@ -158,14 +198,7 @@
             return;
         }
 
-        var json = JsonSerializer.Serialize(config);
-        await JSRuntime.InvokeVoidAsync("engine.repositionDice", json);
-    }
-
-    private async Task InvokeUnityRoll(DiceThrowConfiguration config)
-    {
-        var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { IgnoreNullValues = true });
-        await JSRuntime.InvokeVoidAsync("engine.rollDice", json);
+        await JsInterop.RepositionDice(config);
     }
 
     private DieParser.ParsingResult ParseInput(string input)
@@ -183,12 +216,12 @@
         }
         catch (InvalidDataException ex)
         {
-            Console.WriteLine($"ERROR: {ex.Message}");
+            Logger.LogError($"ERROR: {ex.Message}");
             return null;
         }
     }
 
-    private async Task ReceiveThrowValue(string id, int value, string config)
+    private async Task ReceiveFinalThrowconfiguration(string id, int value, string config)
     {
         var guid = Guid.Parse(id);
         var log = throwLogs.SingleOrDefault(_ => _.Id == guid);
@@ -200,7 +233,7 @@
 
         if (!string.IsNullOrEmpty(config))
         {
-            await hubConnection.SendAsync("RepositionDice", guid, JsonSerializer.Deserialize<DieFinalConfigurationWrapper>(config));
+            await RoomHub.RepositionDice(guid, JsonSerializer.Deserialize<DieFinalConfigurationWrapper>(config));
         }
 
         StateHasChanged();
@@ -214,6 +247,41 @@
         }
     }
 
+    private void DiceInputKeyUp(KeyboardEventArgs e)
+    {
+        if (myThrows.Count == 0)
+        {
+            return;
+        }
+
+        if (string.Equals("arrowup", e.Code, StringComparison.OrdinalIgnoreCase))
+        {
+            if (historyPosition is null)
+            {
+                historyPosition = 0;
+            }
+            else
+            {
+                historyPosition = (historyPosition + 1) % myThrows.Count;
+            }
+
+            diceExpression = myThrows.ElementAt(historyPosition.Value);
+        }
+
+        if (string.Equals("arrowdown", e.Code, StringComparison.OrdinalIgnoreCase))
+        {
+            if (historyPosition is null)
+            {
+                historyPosition = myThrows.Count - 1;
+            }
+            else
+            {
+                historyPosition = (historyPosition - 1) % myThrows.Count + (historyPosition == 0 ? myThrows.Count : 0);
+            }
+
+            diceExpression = myThrows.ElementAt(historyPosition.Value);
+        }
+    }
 
     private void LeaveRoom()
     {
@@ -221,11 +289,24 @@
         Navigator.NavigateTo("/create");
     }
 
+    private async Task SelectDiceModel()
+    {
+        var modalParameters = new ModalParameters();
+        modalParameters.Add(nameof(DiceSettingsModalComponent.CurrentDiceSet), currentDiceSet);
+
+        var modal = ModalService.Show<DiceSettingsModalComponent>("Dice settings", modalParameters);
+        var result = await modal.Result;
+
+        if (result.Cancelled)
+        {
+            return;
+        }
+
+        currentDiceSet = (int)result.Data;
+    }
+
     public void Dispose()
     {
-        if (hubConnection is {})
-        {
-            _ = hubConnection.DisposeAsync();
-        }
+        RoomHub.Dispose();
     }
 }
