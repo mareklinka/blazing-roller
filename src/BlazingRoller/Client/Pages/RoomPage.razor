@@ -1,6 +1,5 @@
 ﻿@page "/room/{RoomId:guid}"
 
-@using Microsoft.AspNetCore.SignalR.Client
 @using System.Text.Json
 @using System.IO
 @using BlazingRoller.Client.Models
@@ -11,6 +10,7 @@
 @inject ILogger<RoomPage> Logger
 @inject JsInteropService JsInterop
 @inject RoomHubConnection RoomHub
+@inject IModalService ModalService
 
 @implements IDisposable
 
@@ -32,12 +32,15 @@
                     <input type="text" @bind="diceExpression" class="form-control" autocomplete="" @bind:event="oninput" @onkeyup="DiceInputKeyUp" @onkeypress="DiceInputKeyPressed"/>
                     <div class="input-group-append">
                         <button type="button" class="btn btn-primary" @onclick="Roll">Roll!</button>
+                        <button type="button" class="btn btn-outline-warning" @onclick="SelectDiceModel"><i class="fas fa-cogs"></i></button>
                     </div>
                 </div>
             </div>
             <div class="col-auto">
-                <button type="button" class="btn btn-success" @onclick='() => RollCore("1D20")'><i class="fas fa-dice-d20"></i></button>
-                <button type="button" class="btn btn-success" @onclick='() => RollCore("2D20")'>2x <i class="fas fa-dice-d20"></i></button>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-success" @onclick='() => RollCore("1D20")'><i class="fas fa-dice-d20"></i></button>
+                    <button type="button" class="btn btn-outline-success" @onclick='() => RollCore("2D20")'>2x <i class="fas fa-dice-d20"></i></button>
+                </div>
             </div>
         </div>
 
@@ -74,6 +77,7 @@
     private LinkedList<string> myThrows = new LinkedList<string>();
     private Guid? currentThrowId;
     private int? historyPosition;
+    private int currentDiceSet;
 
     protected override async Task OnInitializedAsync()
     {
@@ -125,6 +129,7 @@
                 RandomSeed = seed,
                 Offset = diceConfig.Constants.DefaultIfEmpty(0).Sum(),
                 ThrowId = Guid.NewGuid(),
+                DiceSet = currentDiceSet,
                 ReturnFinalConfiguration = true,
                 Dice = diceConfig.Dice.Select(_ =>
                     new DieThrowConfiguration
@@ -277,6 +282,22 @@
     {
         Storage.Clear();
         Navigator.NavigateTo("/create");
+    }
+
+    private async Task SelectDiceModel()
+    {
+        var modalParameters = new ModalParameters();
+        modalParameters.Add(nameof(DiceSettingsModalComponent.CurrentDiceSet), currentDiceSet);
+
+        var modal = ModalService.Show<DiceSettingsModalComponent>("Dice settings", modalParameters);
+        var result = await modal.Result;
+
+        if (result.Cancelled)
+        {
+            return;
+        }
+
+        currentDiceSet = (int)result.Data;
     }
 
     public void Dispose()

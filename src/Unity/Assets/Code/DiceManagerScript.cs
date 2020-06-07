@@ -16,13 +16,6 @@ public class DiceManagerScript : MonoBehaviour
     [DllImport("__Internal")]
     private static extern void PropagateValue(string id, int value, string config);
 
-    public GameObject prefabD4;
-    public GameObject prefabD6;
-    public GameObject prefabD8;
-    public GameObject prefabD10;
-    public GameObject prefabD12;
-    public GameObject prefabD20;
-
     public GameObject guiCanvas;
 
     // Start is called before the first frame update
@@ -34,7 +27,7 @@ public class DiceManagerScript : MonoBehaviour
 #endif
 
 #if UNITY_EDITOR
-        NewThrow("{\"ThrowId\":\"113d70d1-0457-472f-8603-aa1c90da132b\",\"ReturnFinalConfiguration\":true,\"RandomSeed\":1610762363,\"Offset\":0,\"Dice\":[{\"Id\":0,\"Sides\":20,\"Multiplier\":1}]}");
+        NewThrow("{\"ThrowId\":\"113d70d1-0457-472f-8603-aa1c90da132b\",\"DiceSet\":1,\"ReturnFinalConfiguration\":true,\"RandomSeed\":1610762363,\"Offset\":0,\"Dice\":[{\"Id\":0,\"Sides\":20,\"Multiplier\":1}]}");
 #endif
     }
 
@@ -54,7 +47,7 @@ public class DiceManagerScript : MonoBehaviour
     public void NewThrow(string serializedConfig)
     {
         _resultSent = false;
-        _throwConfiguration = JsonUtility.FromJson<BlazingRoller.Unity.DiceThrowConfiguration>(serializedConfig);
+        _throwConfiguration = JsonUtility.FromJson<DiceThrowConfiguration>(serializedConfig);
 
         var random = new System.Random(_throwConfiguration.RandomSeed);
 
@@ -70,7 +63,9 @@ public class DiceManagerScript : MonoBehaviour
 
         foreach (var c in _throwConfiguration.Dice.OrderBy(_ => _.Id))
         {
-            var die = CreateDie(c.Sides);
+            var modelSelector = GetComponent<DieModelSelector>();
+
+            var die = CreateDie(modelSelector, _throwConfiguration.DiceSet, c.Sides);
 
             if (die == null)
             {
@@ -82,7 +77,6 @@ public class DiceManagerScript : MonoBehaviour
             dice.Add(die);
         }
 
-        var i = 0;
         foreach (var die in dice)
         {
             var dieSeed = random.Next();
@@ -118,45 +112,25 @@ public class DiceManagerScript : MonoBehaviour
         guiCanvas.SetActive(showUi);
     }
 
-    private GameObject CreateDie(int sides)
+    private GameObject CreateDie(DieModelSelector modelSelector, int modelSet, int sides)
     {
-        GameObject die;
-        switch (sides)
+        var prefab = modelSelector.GetDiePrefab(modelSet, sides);
+
+        if (prefab == null)
         {
-            case 4:
-                die = Instantiate(prefabD4, _diceStartPosition, _diceStartOrientation);
-                die.transform.localScale = new Vector3(2.2F, 2.2F, 2.2F);
-                return die;
-            case 6:
-                die = Instantiate(prefabD6, _diceStartPosition, _diceStartOrientation);
-                die.transform.localScale = new Vector3(2.3F, 2.3F, 2.3F);
-                return die;
-            case 8:
-                die = Instantiate(prefabD8, _diceStartPosition, _diceStartOrientation);
-                die.transform.localScale = new Vector3(2, 2, 2);
-                return die;
-            case 10:
-                die = Instantiate(prefabD10, _diceStartPosition, _diceStartOrientation);
-                die.transform.localScale = new Vector3(2.3F, 2.3F, 2.3F);
-                return die;
-            case 12:
-                die = Instantiate(prefabD12, _diceStartPosition, _diceStartOrientation);
-                die.transform.localScale = new Vector3(2, 2, 2);
-                return die;
-            case 20:
-                die = Instantiate(prefabD20, _diceStartPosition, _diceStartOrientation);
-                die.transform.localScale = new Vector3(2.2F, 2.2F, 2.2F);
-                return die;
-            default:
-                return null;
+            return null;
         }
+
+        var die = Instantiate(prefab, _diceStartPosition, _diceStartOrientation);
+        die.transform.localScale = new Vector3(2.2F, 2.2F, 2.2F);
+        return die;
     }
 
     private void SetupDie(GameObject die, int valueMultiplier, int id)
     {
         die.tag = "Dice";
         die.AddComponent<DieScript>();
-        DieScript dieScript = die.GetComponent<DieScript>();
+        var dieScript = die.GetComponent<DieScript>();
         dieScript.SetMultiplier(valueMultiplier);
         dieScript.SetId(id);
     }
@@ -180,7 +154,7 @@ public class DiceManagerScript : MonoBehaviour
         }
 
         (var values, var positions) = GetDiceValues(dice);
-        int total = values.Sum() + _throwConfiguration.Offset;
+        var total = values.Sum() + _throwConfiguration.Offset;
 
         var resultText = GetResultText(values, total);
 

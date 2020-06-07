@@ -401,6 +401,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 561312286}
+  - component: {fileID: 561312288}
   - component: {fileID: 561312287}
   m_Layer: 0
   m_Name: DiceManager
@@ -435,19 +436,54 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03c0b45266b7c4149bb06c5085eaed98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  prefabD4: {fileID: 5730423195989157687, guid: 2e15671a257719f45b2d2c6e0805ee5c,
-    type: 3}
-  prefabD6: {fileID: 5706793339727229867, guid: 232d0a03b7e824e49a89587885fcce67,
-    type: 3}
-  prefabD8: {fileID: 4273911836019275558, guid: e959523bec8ff664f80dd7731504cda2,
-    type: 3}
-  prefabD10: {fileID: 1920660255238441926, guid: 7483ce376c883ac42bb49133f9a51830,
-    type: 3}
-  prefabD12: {fileID: 129734511697091833, guid: 9309f1f566799bf499b8a1b68432574f,
-    type: 3}
-  prefabD20: {fileID: 130529378359654421, guid: f283c50c0e4d6cc4ab4c44039645bf93,
-    type: 3}
   guiCanvas: {fileID: 99182200}
+--- !u!114 &561312288
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 561312285}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acfe7712ba37faa4aa4433e0d39c43ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  diceSet0:
+  - {fileID: 7340897479456910457, guid: 92c1bf0c978eff844a634cbda87a1cef, type: 3}
+  - {fileID: 5565040172236271752, guid: c4c4ce881403da343a76419c741908a4, type: 3}
+  - {fileID: 251634678142300342, guid: bf096f2f0d46cf84ca7b75bbd1744487, type: 3}
+  - {fileID: 1576382809853143342, guid: 09d6ccdb8070b8d47bb1a2c6c0a2165b, type: 3}
+  - {fileID: 7387987587939570682, guid: b7a7d504302c6f747b39c43ff6aa2b1d, type: 3}
+  - {fileID: 1182721411725653434, guid: 275ef9cf7cf4ea74d8a31d04cd088f88, type: 3}
+  diceSet1:
+  - {fileID: 2636476400718735764, guid: d9d45e7570e2b4b44b17a92a0302d69c, type: 3}
+  - {fileID: 4505178115164438189, guid: a0af9b5d3a244c248b76b8938e60a6c6, type: 3}
+  - {fileID: 8895936302421217829, guid: 50ef6bb40fa08a449bf803b218595d38, type: 3}
+  - {fileID: 1536736635407188242, guid: 71f0af13469ac8a43bef745300fbae3d, type: 3}
+  - {fileID: 7698169963659182960, guid: 7d93664c606d5d842b94eb680f21fd88, type: 3}
+  - {fileID: 6993567429191511052, guid: ab51e9956be593a4586a2481a7472584, type: 3}
+  diceSet2:
+  - {fileID: 9081301923607856429, guid: 6fb3367b6f35bf545987e3eb65343b30, type: 3}
+  - {fileID: 5461426399526245485, guid: fdaa940732e10324d801bea34db72211, type: 3}
+  - {fileID: 5291788209573760284, guid: bc0ad22175f36bd40bb53ee0b7863790, type: 3}
+  - {fileID: 6799705333689108434, guid: 0979d90fa1656054e96d67d5092ce065, type: 3}
+  - {fileID: 245398481981656527, guid: 8ba127ab2a337af479f3a270b599711a, type: 3}
+  - {fileID: 7322548237997603461, guid: 394d96b405a98b347b39f6889f754c3a, type: 3}
+  diceSet3:
+  - {fileID: 5730423195989157687, guid: 2e15671a257719f45b2d2c6e0805ee5c, type: 3}
+  - {fileID: 5706793339727229867, guid: 232d0a03b7e824e49a89587885fcce67, type: 3}
+  - {fileID: 4273911836019275558, guid: e959523bec8ff664f80dd7731504cda2, type: 3}
+  - {fileID: 1920660255238441926, guid: 7483ce376c883ac42bb49133f9a51830, type: 3}
+  - {fileID: 129734511697091833, guid: 9309f1f566799bf499b8a1b68432574f, type: 3}
+  - {fileID: 130529378359654421, guid: f283c50c0e4d6cc4ab4c44039645bf93, type: 3}
+  diceSet4:
+  - {fileID: 2487936730391959846, guid: 8f6ec069b68a1d947a26b65536a46082, type: 3}
+  - {fileID: 7695569597244974356, guid: afd32b213dfe24d40938c0f7cf68e9b3, type: 3}
+  - {fileID: 6909992856212066798, guid: 9531ee65da6c4424fa6d146456563d70, type: 3}
+  - {fileID: 3974911994841005528, guid: f998945d09afd744382917180213a88b, type: 3}
+  - {fileID: 365044905342996756, guid: 8b1bd7e88011e734290c0736d532fde2, type: 3}
+  - {fileID: 1379951958853293045, guid: f8e371e17970e294bb150f35ef74330c, type: 3}
 --- !u!1 &651209015
 GameObject:
   m_ObjectHideFlags: 0

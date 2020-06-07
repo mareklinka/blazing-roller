@@ -1,0 +1,37 @@
+<div class="row mb-2">
+    <div class="col-12">Here you can customize the appearance of your dice.</div>
+</div>
+<div class="row mb-2">
+    <div class="col-12">
+        <select class="custom-select" @bind="@CurrentDiceSet" @bind:event="oninput">
+            @foreach (var (id, name, isSelected) in _options)
+            {
+                <option value="@id" selected="@isSelected">@name</option>
+            }
+        </select>
+    </div>
+</div>
+<div class="row mb-2">
+    <div class="col">
+        <button class="btn btn-primary" @onclick="() => BlazoredModal.Close(ModalResult.Ok(CurrentDiceSet))">Save</button>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    BlazoredModalInstance BlazoredModal { get; set; }
+
+    [Parameter]
+    public int CurrentDiceSet { get; set; }
+
+    private List<(int Id, string Name, bool IsSelected)> _options = new List<(int Id, string Name, bool IsSelected)>();
+
+    protected override void OnParametersSet()
+    {
+        _options.Add((0, "Red-white plastic", CurrentDiceSet == 0));
+        _options.Add((1, "Black-red plastic", CurrentDiceSet == 1));
+        _options.Add((2, "White-blue plastic", CurrentDiceSet == 2));
+        _options.Add((3, "Black-yellow plastic", CurrentDiceSet == 3));
+        _options.Add((4, "Gold-yellow metal", CurrentDiceSet == 4));
+    }
+}
