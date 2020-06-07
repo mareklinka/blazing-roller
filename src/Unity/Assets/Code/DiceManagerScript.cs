@@ -49,6 +49,11 @@ public class DiceManagerScript : MonoBehaviour
         _resultSent = false;
         _throwConfiguration = JsonUtility.FromJson<DiceThrowConfiguration>(serializedConfig);
 
+        if (_throwConfiguration.Dice.Length > 15)
+        {
+            return;
+        }
+
         var random = new System.Random(_throwConfiguration.RandomSeed);
 
         ToggleUI(false);
@@ -173,6 +178,19 @@ public class DiceManagerScript : MonoBehaviour
 
         var textBox = GameObject.Find("ThrowResult").GetComponent<UnityEngine.UI.Text>();
         textBox.text = resultText;
+
+        var background = GameObject.Find("ThrowResultBackground").GetComponent<RectTransform>();
+
+        switch (textBox.cachedTextGenerator.lineCount)
+        {
+            case 0:
+            case 1:
+                background.sizeDelta = new Vector2(background.sizeDelta.x, 60);
+                break;
+            case 2:
+                background.sizeDelta = new Vector2(background.sizeDelta.x, 106);
+                break;
+        }
     }
 
     private bool IsSystemStable(GameObject[] dice)

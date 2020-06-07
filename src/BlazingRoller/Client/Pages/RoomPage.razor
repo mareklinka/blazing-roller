@@ -115,7 +115,7 @@
     {
         var diceConfig = ParseInput(expression);
 
-        if (diceConfig == null)
+        if (diceConfig == null || diceConfig.Dice.Count() > 15)
         {
             return;
         }
@@ -175,6 +175,11 @@
 
     private async Task ReceiveRoll(string username, DiceThrowConfiguration config)
     {
+        if (config.Dice.Count > 15)
+        {
+            return;
+        }
+
         throwLogs.Add(new DiceThrowLogModel { Id = config.ThrowId,  Name = username, Text = config.ToString() });
 
         currentThrowId = config.ThrowId;
