@@ -8,8 +8,9 @@
 
 @inject NavigationManager Navigator
 @inject SessionStorageService Storage
-@inject IJSRuntime JSRuntime
 @inject ILogger<RoomPage> Logger
+@inject JsInteropService JsInterop
+@inject RoomHubConnection RoomHub
 
 @implements IDisposable
 
@@ -65,11 +66,10 @@
     [Parameter]
     public Guid RoomId { get; set; }
 
-    private static Func<string, int, string, Task> deliverThrowValueAction;
+    private static Func<string, int, string, Task> receiveFinalThrowconfiguration;
 
     private ElementReference logContainer;
     private string diceExpression;
-    private HubConnection hubConnection;
     private List<DiceThrowLogModel> throwLogs = new List<DiceThrowLogModel>();
     private Guid? currentThrowId;
 
@@ -81,20 +81,17 @@
             return;
         }
 
-        deliverThrowValueAction = ReceiveThrowValue;
+        receiveFinalThrowconfiguration = ReceiveFinalThrowconfiguration;
 
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigator.ToAbsoluteUri($"/roomHub?roomKey={Storage.RoomKey}&roomId={RoomId}"))
-            .WithAutomaticReconnect()
-            .Build();
+        RoomHub.BuildConnection(RoomId.ToString(), Storage.RoomKey.ToString());
 
-        hubConnection.On<string, DiceThrowConfiguration>("ReceiveRoll", ReceiveRoll);
-        hubConnection.On<Guid, DieFinalConfigurationWrapper>("ReceiveDicePositions", ReceiveDicePositions);
+        RoomHub.OnReceiveRoll(ReceiveRoll);
+        RoomHub.OnReceiveDicePositions(ReceiveDicePositions);
 
-        await hubConnection.StartAsync();
-        await hubConnection.SendAsync("JoinRoom");
+        await RoomHub.Connect();
+        await RoomHub.JoinRoom();
 
-        await JSRuntime.InvokeVoidAsync("BlazingRollerLib.init", "diceCanvas");
+        await JsInterop.InitializeWebGl("diceCanvas");
     }
 
     public async Task Roll()
@@ -105,7 +102,7 @@
     [JSInvokable]
     public static void ReceiveThrowValueProxy(string id, int value, string config)
     {
-        deliverThrowValueAction.Invoke(id, value, config);
+        receiveFinalThrowconfiguration.Invoke(id, value, config);
     }
 
     private async Task RollCore(string expression)
@@ -133,13 +130,14 @@
                         Multiplier = _.Multiplicity
                     }).ToList()
             };
+
         currentThrowId = config.ThrowId;
 
         throwLogs.Add(new DiceThrowLogModel { Id = config.ThrowId, Name = Storage.User, Text = config.ToString() });
-        await JSRuntime.InvokeVoidAsync("ElementInterop.scrollToEnd", logContainer);
+        await JsInterop.ScrollElementToEnd(logContainer);
 
-        await InvokeUnityRoll(config);
-        await hubConnection.SendAsync("RollDice", Storage.User, config);
+        await JsInterop.SendRollToUnity(config);
+        await RoomHub.RollDice(Storage.User, config);
     }
 
     private async Task ReceiveRoll(string username, DiceThrowConfiguration config)
@@ -148,9 +146,11 @@
 
         currentThrowId = config.ThrowId;
         config.ReturnFinalConfiguration = false;
-        await InvokeUnityRoll(config);
+        await JsInterop.SendRollToUnity(config);
+
         StateHasChanged();
-        await JSRuntime.InvokeVoidAsync("ElementInterop.scrollToEnd", logContainer);
+
+        await JsInterop.ScrollElementToEnd(logContainer);
     }
 
     private async Task ReceiveDicePositions(Guid throwId, DieFinalConfigurationWrapper config)
@@ -160,14 +160,7 @@
             return;
         }
 
-        var json = JsonSerializer.Serialize(config);
-        await JSRuntime.InvokeVoidAsync("engine.repositionDice", json);
-    }
-
-    private async Task InvokeUnityRoll(DiceThrowConfiguration config)
-    {
-        var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { IgnoreNullValues = true });
-        await JSRuntime.InvokeVoidAsync("engine.rollDice", json);
+        await JsInterop.RepositionDice(config);
     }
 
     private DieParser.ParsingResult ParseInput(string input)
@@ -185,12 +178,12 @@
         }
         catch (InvalidDataException ex)
         {
-            Logger.LogError($"ERROR: {ex.Message}")
+            Logger.LogError($"ERROR: {ex.Message}");
             return null;
         }
     }
 
-    private async Task ReceiveThrowValue(string id, int value, string config)
+    private async Task ReceiveFinalThrowconfiguration(string id, int value, string config)
     {
         var guid = Guid.Parse(id);
         var log = throwLogs.SingleOrDefault(_ => _.Id == guid);
@@ -202,7 +195,7 @@
 
         if (!string.IsNullOrEmpty(config))
         {
-            await hubConnection.SendAsync("RepositionDice", guid, JsonSerializer.Deserialize<DieFinalConfigurationWrapper>(config));
+            await RoomHub.RepositionDice(guid, JsonSerializer.Deserialize<DieFinalConfigurationWrapper>(config));
         }
 
         StateHasChanged();
@@ -225,9 +218,6 @@
 
     public void Dispose()
     {
-        if (hubConnection is {})
-        {
-            _ = hubConnection.DisposeAsync();
-        }
+        RoomHub.Dispose();
     }
 }

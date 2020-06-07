@@ -17,6 +17,8 @@ namespace BlazingRoller.Client
             builder.Services.AddTransient(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             builder.Services.AddLogging();
             builder.Services.AddSingleton<SessionStorageService>();
+            builder.Services.AddTransient<JsInteropService>();
+            builder.Services.AddTransient<RoomHubConnection>();
 
             await builder.Build().RunAsync();
         }
