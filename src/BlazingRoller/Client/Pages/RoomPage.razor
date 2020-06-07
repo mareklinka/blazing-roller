@@ -4,10 +4,12 @@
 @using System.Text.Json
 @using System.IO
 @using BlazingRoller.Client.Models
+@using Microsoft.Extensions.Logging
 
 @inject NavigationManager Navigator
 @inject SessionStorageService Storage
 @inject IJSRuntime JSRuntime
+@inject ILogger<RoomPage> Logger
 
 @implements IDisposable
 
@@ -183,7 +185,7 @@
         }
         catch (InvalidDataException ex)
         {
-            Console.WriteLine($"ERROR: {ex.Message}");
+            Logger.LogError($"ERROR: {ex.Message}")
             return null;
         }
     }

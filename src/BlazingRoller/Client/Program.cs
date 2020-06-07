@@ -15,6 +15,7 @@ namespace BlazingRoller.Client
             builder.RootComponents.Add<App>("app");
 
             builder.Services.AddTransient(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddLogging();
             builder.Services.AddSingleton<SessionStorageService>();
 
             await builder.Build().RunAsync();
