@@ -26,7 +26,7 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-dice-d20"></i></span>
                     </div>
-                    <input type="text" @bind="diceExpression" class="form-control" autocomplete="" @onkeypress="DiceInputKeyPressed"/>
+                    <input type="text" @bind="diceExpression" class="form-control" autocomplete="" @bind:event="oninput" @onkeypress="DiceInputKeyPressed"/>
                     <div class="input-group-append">
                         <button type="button" class="btn btn-primary" @onclick="Roll">Roll!</button>
                     </div>
