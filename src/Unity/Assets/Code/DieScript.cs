@@ -1,10 +1,11 @@
-﻿using BlazingRoller.Unity;
+﻿using System.Linq;
+using System;
+using BlazingRoller.Unity;
 using UnityEngine;
 
 public class DieScript : MonoBehaviour
 {
-    private int _dieId;
-    private int _valueMultiplier;
+    private int _sign;
     private Rigidbody _rb;
     private Vector3? _targetPosition;
     private Quaternion? _targetRotation;
@@ -12,10 +13,12 @@ public class DieScript : MonoBehaviour
     private Quaternion? _sourceRotation;
     private float? _targetConfigurationStartTime;
 
-    void Awake()
-    {
-        _rb = GetComponent<Rigidbody>();
-    }
+    public int Id { get; set; }
+    public bool IsPrimary { get; set; }
+    public GameObject[] SecondaryDice { get; set; }
+    public bool IsPercentile { get; set; }
+
+    void Awake() => _rb = GetComponent<Rigidbody>();
 
     // Update is called once per frame
     void Update()
@@ -57,24 +60,19 @@ public class DieScript : MonoBehaviour
         _rb.angularVelocity = new Vector3(Randomize(-10, 20, r), Randomize(-10, 20, r), Randomize(-10, 20, r));
     }
 
-    public void SetMultiplier(int multiplier)
-    {
-        _valueMultiplier = multiplier;
-    }
+    public void SetSign(int sign) => _sign = sign < 0 ? -1 : 1;
 
     public int GetValue()
     {
-        return GetComponent<DiceStats>().side * _valueMultiplier;
-    }
-
-    public int GetId()
-    {
-        return _dieId;
-    }
-
-    public void SetId(int id)
-    {
-        _dieId = id;
+        if (IsPercentile)
+        {
+            var secondarySum = SecondaryDice.Sum(_ => _.GetComponent<DieScript>().GetValue());
+            return (GetComponent<DiceStats>().side % 10 * 10 * _sign) + secondarySum;
+        }
+        else
+        {
+            return GetComponent<DiceStats>().side * _sign;
+        }
     }
 
     public void RepositionTo(DieFinalConfiguration config)
@@ -86,13 +84,10 @@ public class DieScript : MonoBehaviour
         _sourceRotation = transform.rotation;
     }
 
-    public bool IsRepositioning()
-    {
-        return _targetPosition != null;
-    }
+    public bool IsRepositioning() => _targetPosition != null;
 
-    private float Randomize(float origin, float range, System.Random random)
-    {
-        return (float)(origin + range * random.NextDouble());
-    }
+    private float Randomize(float origin,
+                            float range,
+                            System.Random random) =>
+        (float)(origin + (range * random.NextDouble()));
 }
