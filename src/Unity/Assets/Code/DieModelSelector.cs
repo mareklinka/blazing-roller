@@ -60,6 +60,7 @@ public class DieModelSelector : MonoBehaviour
             case 8:
                 return diceModels[2];
             case 10:
+            case 100:
                 return diceModels[3];
             case 12:
                 return diceModels[4];
