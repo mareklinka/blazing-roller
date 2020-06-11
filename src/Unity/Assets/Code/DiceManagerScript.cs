@@ -27,7 +27,7 @@ public class DiceManagerScript : MonoBehaviour
 #endif
 
 #if UNITY_EDITOR
-        NewThrow("{\"ThrowId\":\"113d70d1-0457-472f-8603-aa1c90da132b\",\"DiceSet\":1,\"ReturnFinalConfiguration\":true,\"RandomSeed\":1610762363,\"Offset\":0,\"Dice\":[{\"Id\":0,\"Sides\":20,\"Multiplier\":1}]}");
+        NewThrow("{\"ThrowId\":\"113d70d1-0457-472f-8603-aa1c90da132b\",\"DiceSet\":1,\"ReturnFinalConfiguration\":true,\"RandomSeed\":1610762363,\"Offset\":0,\"Dice\":[{\"Id\":0,\"Sides\":100,\"Multiplier\":1}]}");
 #endif
     }
 
@@ -58,8 +58,7 @@ public class DiceManagerScript : MonoBehaviour
 
         ToggleUI(false);
 
-        var oldDice = GameObject.FindGameObjectsWithTag("Dice");
-        foreach (var die in oldDice)
+        foreach (var die in GameObject.FindGameObjectsWithTag("Dice"))
         {
             Destroy(die);
         }
@@ -70,16 +69,14 @@ public class DiceManagerScript : MonoBehaviour
         {
             var modelSelector = GetComponent<DieModelSelector>();
 
-            var die = CreateDie(modelSelector, _throwConfiguration.DiceSet, c.Sides);
+            var createdDice = CreateDie(modelSelector, _throwConfiguration.DiceSet, c.Sides, c.Id, c.Multiplier);
 
-            if (die == null)
+            if (createdDice == null)
             {
                 continue;
             }
 
-            SetupDie(die, c.Multiplier, c.Id);
-
-            dice.Add(die);
+            dice.AddRange(createdDice);
         }
 
         foreach (var die in dice)
@@ -102,42 +99,56 @@ public class DiceManagerScript : MonoBehaviour
         var configuration = JsonUtility.FromJson<DieFinalConfigurationWrapper>(configString).Configuration.ToDictionary(_ => _.Id);
 
         Physics.autoSimulation = false;
-        var dice = GameObject.FindGameObjectsWithTag("Dice");
-        foreach (var die in dice)
+
+        foreach (var die in GameObject.FindGameObjectsWithTag("Dice"))
         {
             var script = die.GetComponent<DieScript>();
-            script.RepositionTo(configuration[script.GetId()]);
+            script.RepositionTo(configuration[script.Id]);
         }
 
-        _resultSent = false; // a new result will need to be send
+        _resultSent = false; // a new result will need to be sent
     }
 
-    private void ToggleUI(bool showUi)
-    {
-        guiCanvas.SetActive(showUi);
-    }
+    private void ToggleUI(bool showUi) => guiCanvas.SetActive(showUi);
 
-    private GameObject CreateDie(DieModelSelector modelSelector, int modelSet, int sides)
+    private GameObject[] CreateDie(DieModelSelector modelSelector, int modelSet, int sides, int id, int sign)
     {
-        var prefab = modelSelector.GetDiePrefab(modelSet, sides);
+        var (prefabToUse, numberOfDice) = sides != 100 ? (sides, 1) : (10, 2);
+
+        var prefab = modelSelector.GetDiePrefab(modelSet, prefabToUse);
 
         if (prefab == null)
         {
             return null;
         }
 
-        var die = Instantiate(prefab, _diceStartPosition, _diceStartOrientation);
-        die.transform.localScale = new Vector3(2.2F, 2.2F, 2.2F);
-        return die;
-    }
+        var result = new GameObject[numberOfDice];
+        for (var i = 0; i < numberOfDice; ++i)
+        {
+            var die = Instantiate(prefab, _diceStartPosition, _diceStartOrientation);
+            die.tag = "Dice";
 
-    private void SetupDie(GameObject die, int valueMultiplier, int id)
-    {
-        die.tag = "Dice";
-        die.AddComponent<DieScript>();
-        var dieScript = die.GetComponent<DieScript>();
-        dieScript.SetMultiplier(valueMultiplier);
-        dieScript.SetId(id);
+            var dieScript = die.AddComponent<DieScript>();
+
+            dieScript.Id = sides == 100 ? 100 + (id * 100) + i : id;
+            dieScript.IsPrimary = sides != 100 || i == 0;
+            dieScript.IsPercentile = sides == 100 && i == 0;
+            dieScript.SetSign(sign);
+
+            die.transform.localScale = sides == 100 && i == 0
+                ? new Vector3(3F, 3F, 3F)
+                : new Vector3(2.2F, 2.2F, 2.2F);
+
+            result[i] = die;
+        }
+
+        if (sides == 100)
+        {
+            var dieScript = result[0].GetComponent<DieScript>();
+            dieScript.SecondaryDice = result.Skip(1).ToArray();
+        }
+
+        return result;
     }
 
     private void RenderResultsUi()
@@ -165,10 +176,10 @@ public class DiceManagerScript : MonoBehaviour
 
         if (!_resultSent)
         {
-#if !UNITY_EDITOR
             var serializedConfig = _throwConfiguration.ReturnFinalConfiguration
                 ? JsonUtility.ToJson(new DieFinalConfigurationWrapper { Configuration = positions })
                 : string.Empty;
+#if !UNITY_EDITOR
             PropagateValue(_throwConfiguration.ThrowId, total, serializedConfig);
 #endif
             _resultSent = true;
@@ -227,20 +238,26 @@ public class DiceManagerScript : MonoBehaviour
 
     private (int[] Values, DieFinalConfiguration[] Positions) GetDiceValues(GameObject[] dice)
     {
-        var values = new int[dice.Length];
+        var values = new List<int>();
         var finalPositions = new DieFinalConfiguration[dice.Length];
 
         var i = 0;
         foreach (var die in dice)
         {
             var dieScript = die.GetComponent<DieScript>();
-            values[i] = dieScript.GetValue();
+
+            if (dieScript.IsPercentile)
+            {
+                // only use the primary dice to compute values
+                // secondary dice will be used by their primaries
+                values.Add(dieScript.GetValue());
+            }
 
             if (_throwConfiguration.ReturnFinalConfiguration)
             {
                 var dfc = new DieFinalConfiguration
                 {
-                    Id = dieScript.GetId(),
+                    Id = dieScript.Id,
                     X = die.transform.position.x,
                     Y = die.transform.position.y,
                     Z = die.transform.position.z,
@@ -256,7 +273,7 @@ public class DiceManagerScript : MonoBehaviour
             ++i;
         }
 
-        return (values, finalPositions);
+        return (values.ToArray(), finalPositions);
     }
 
     private string GetResultText(int[] values, int total)

@@ -10,7 +10,7 @@ namespace BlazingRoller.Shared
     {
         public static ParsingResult Parse(string expression)
         {
-            var dieRegex = new Regex("^(?<multi>[0-9]*)[dD](?<size>4|6|8|10|12|20)$");
+            var dieRegex = new Regex("^(?<multi>[0-9]*)[dD](?<size>4|6|8|10|12|20|100)$");
             var numberRegex = new Regex("^[0-9]+$");
 
             if (expression == null)
