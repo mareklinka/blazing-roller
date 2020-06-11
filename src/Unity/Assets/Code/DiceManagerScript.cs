@@ -27,7 +27,7 @@ public class DiceManagerScript : MonoBehaviour
 #endif
 
 #if UNITY_EDITOR
-        NewThrow("{\"ThrowId\":\"113d70d1-0457-472f-8603-aa1c90da132b\",\"DiceSet\":1,\"ReturnFinalConfiguration\":true,\"RandomSeed\":1610762363,\"Offset\":0,\"Dice\":[{\"Id\":0,\"Sides\":100,\"Multiplier\":1}]}");
+        NewThrow("{\"ThrowId\":\"113d70d1-0457-472f-8603-aa1c90da132b\",\"DiceSet\":1,\"ReturnFinalConfiguration\":true,\"RandomSeed\":1610762363,\"Offset\":0,\"Dice\":[{\"Id\":0,\"Sides\":10,\"Multiplier\":1}]}");
 #endif
     }
 
@@ -246,7 +246,7 @@ public class DiceManagerScript : MonoBehaviour
         {
             var dieScript = die.GetComponent<DieScript>();
 
-            if (dieScript.IsPercentile)
+            if (dieScript.IsPrimary)
             {
                 // only use the primary dice to compute values
                 // secondary dice will be used by their primaries
