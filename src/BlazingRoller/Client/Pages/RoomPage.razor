@@ -19,7 +19,7 @@
 <div class="row">
     <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12 webgl-column">
         <div class="webgl-content">
-            <div id="unityContainer" style="width: 800px; height: 450px"></div>
+            <div id="unityContainer" style="width: 100%; min-width: 576px; height: 450px"></div>
         </div>
     </div>
     <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
@@ -69,7 +69,7 @@
     [Parameter]
     public Guid RoomId { get; set; }
 
-    private static Func<string, int, string, Task> receiveFinalThrowconfiguration;
+    private static Func<string, int, string, Task> receiveFinalThrowConfiguration;
 
     private ElementReference logContainer;
     private string diceExpression;
@@ -87,7 +87,7 @@
             return;
         }
 
-        receiveFinalThrowconfiguration = ReceiveFinalThrowconfiguration;
+        receiveFinalThrowConfiguration = ReceiveFinalThrowConfiguration;
 
         RoomHub.BuildConnection(RoomId.ToString(), Storage.RoomKey.ToString());
 
@@ -108,7 +108,7 @@
     [JSInvokable]
     public static void ReceiveThrowValueProxy(string id, int value, string config)
     {
-        receiveFinalThrowconfiguration.Invoke(id, value, config);
+        receiveFinalThrowConfiguration.Invoke(id, value, config);
     }
 
     private async Task RollCore(string expression)
@@ -221,7 +221,7 @@
         }
     }
 
-    private async Task ReceiveFinalThrowconfiguration(string id, int value, string config)
+    private async Task ReceiveFinalThrowConfiguration(string id, int value, string config)
     {
         var guid = Guid.Parse(id);
         var log = throwLogs.SingleOrDefault(_ => _.Id == guid);
