@@ -7,11 +7,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 5706793339727229867, guid: 232d0a03b7e824e49a89587885fcce67,
-        type: 3}
-      propertyPath: m_Name
-      value: 6SidedHighPoly
-      objectReference: {fileID: 0}
     - target: {fileID: 5457834528119322358, guid: 232d0a03b7e824e49a89587885fcce67,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -67,10 +62,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5706793339727229867, guid: 232d0a03b7e824e49a89587885fcce67,
+        type: 3}
+      propertyPath: m_Name
+      value: 6SidedHighPoly Variant 20
+      objectReference: {fileID: 0}
     - target: {fileID: 8692179363131941523, guid: 232d0a03b7e824e49a89587885fcce67,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: a10d74889b2b12b4d91e95420e1e7dab, type: 2}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 1494693220196983033, guid: 232d0a03b7e824e49a89587885fcce67, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 232d0a03b7e824e49a89587885fcce67, type: 3}

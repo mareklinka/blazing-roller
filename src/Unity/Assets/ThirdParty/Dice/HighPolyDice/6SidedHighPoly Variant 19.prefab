@@ -10,7 +10,7 @@ PrefabInstance:
     - target: {fileID: 4879944575267804596, guid: 2110af13f9970ce4a9ecf15dc1aab445,
         type: 3}
       propertyPath: m_Name
-      value: 6SidedHighPoly
+      value: 6SidedHighPoly Variant 19
       objectReference: {fileID: 0}
     - target: {fileID: 5131163911311511785, guid: 2110af13f9970ce4a9ecf15dc1aab445,
         type: 3}
@@ -72,5 +72,6 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: ef6eab640310b3940a1686648859b5ee, type: 2}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 1744483372918998758, guid: 2110af13f9970ce4a9ecf15dc1aab445, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 2110af13f9970ce4a9ecf15dc1aab445, type: 3}

@@ -118,7 +118,7 @@
             loginModel.RoomName = roomName;
             isRoomNameFixed = true;
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
             isError = true;
             Logger.LogError("Getting a room name from the server failed");
