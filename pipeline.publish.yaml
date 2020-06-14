@@ -38,6 +38,15 @@ steps:
     projects: 'src\BlazingRoller\Server\BlazingRoller.Server.csproj'
     feedsToUse: 'select'
 
+- task: PowerShell@2
+  displayName: 'Update assembly version'
+  inputs:
+    targetType: inline
+    workingDirectory: 'src/BlazingRoller'
+    script: |
+      $id = $(Build.BuildId)
+      (Get-Content -raw AssemblyInfo.cs) -replace "(\d+\.\d+\.\d+)\.\d+", ('$1.' + $id) | Out-File AssemblyInfo.cs
+
 - task: DotNetCoreCLI@2
   displayName: 'Publish application'
   inputs:
