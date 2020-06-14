@@ -4,6 +4,7 @@
 @using System.IO
 @using BlazingRoller.Client.Models
 @using Microsoft.Extensions.Logging
+@using System.Reflection
 
 @inject NavigationManager Navigator
 @inject SessionStorageService Storage
@@ -14,7 +15,10 @@
 
 @implements IDisposable
 
-<div class="room-name">@Storage.Room <span class="leave-room-link">(<a href="#" @onclick:preventDefault @onclick="LeaveRoom">Leave room <i class="fas fa-sign-out-alt"></i></a>)</span></div>
+<div class="row">
+    <div class="col-11 room-name">@Storage.Room <span class="leave-room-link">(<a href="#" @onclick:preventDefault @onclick="LeaveRoom">Leave room <i class="fas fa-sign-out-alt"></i></a>)</span></div>
+    <div class="col-1"><small class="float-right text-muted">@applicationVersion</small></div>
+</div>
 
 <div class="row">
     <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12 webgl-column">
@@ -78,6 +82,7 @@
     private Guid? currentThrowId;
     private int? historyPosition;
     private int currentDiceSet;
+    private string applicationVersion;
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,6 +91,8 @@
             Navigator.NavigateTo($"/create/{RoomId}");
             return;
         }
+
+        applicationVersion = GetType().Assembly.GetName().Version.ToString();
 
         receiveFinalThrowConfiguration = ReceiveFinalThrowConfiguration;
 
